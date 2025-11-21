@@ -24,7 +24,8 @@ const ICON_OPTIONS = [
 
 let appState = {
     tasks: [],
-    taskStates: {}
+    taskStates: {},
+    lastModified: null
 };
 
 let currentUser = null;
@@ -107,6 +108,7 @@ function loadState() {
 }
 
 function saveState() {
+    appState.lastModified = new Date().toISOString();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
 
     if (cloudSaveTimeout) clearTimeout(cloudSaveTimeout);
@@ -151,12 +153,72 @@ async function loadFromCloud() {
         .maybeSingle();
 
     if (error) {
-        console.error('Erreur chargement cloud:', error);
+        console.error('❌ Erreur chargement cloud:', error);
         return null;
     }
 
-    if (!data) return null;
+    if (!data) {
+        console.log('☁️ Pas de données cloud, utilisation du local');
+        return null;
+    }
+    
+    console.log('☁️ Données cloud chargées:', data.updated_at);
     return data.data;
+}
+
+// Fonction pour merger intelligemment les états local et cloud
+function mergeStates(localState, cloudState) {
+    if (!localState || !localState.tasks) return cloudState;
+    if (!cloudState || !cloudState.tasks) return localState;
+
+    console.log('🔄 Merge local/cloud...');
+    
+    // Comparer les timestamps
+    const localTime = localState.lastModified ? new Date(localState.lastModified).getTime() : 0;
+    const cloudTime = cloudState.lastModified ? new Date(cloudState.lastModified).getTime() : 0;
+
+    // Si le cloud est plus récent, on le prend
+    if (cloudTime > localTime) {
+        console.log('☁️ Cloud plus récent, utilisation du cloud');
+        return cloudState;
+    }
+
+    // Si le local est plus récent, on le prend
+    if (localTime > cloudTime) {
+        console.log('💾 Local plus récent, utilisation du local');
+        return localState;
+    }
+
+    // Sinon on merge en combinant les tâches uniques
+    const mergedTasks = [...cloudState.tasks];
+    const cloudTaskIds = new Set(cloudState.tasks.map(t => t.id));
+    
+    localState.tasks.forEach(localTask => {
+        if (!cloudTaskIds.has(localTask.id)) {
+            mergedTasks.push(localTask);
+        }
+    });
+
+    // Merger les états des tâches
+    const mergedTaskStates = { ...cloudState.taskStates };
+    Object.keys(localState.taskStates).forEach(taskId => {
+        if (!mergedTaskStates[taskId]) {
+            mergedTaskStates[taskId] = localState.taskStates[taskId];
+        } else {
+            // Merger les dates individuelles
+            mergedTaskStates[taskId] = {
+                ...mergedTaskStates[taskId],
+                ...localState.taskStates[taskId]
+            };
+        }
+    });
+
+    console.log('🔀 Merge combiné effectué');
+    return {
+        tasks: mergedTasks,
+        taskStates: mergedTaskStates,
+        lastModified: new Date().toISOString()
+    };
 }
 
 // ========================================
@@ -595,11 +657,20 @@ function init() {
             try {
                 const cloudState = await loadFromCloud();
                 if (cloudState) {
-                    appState = cloudState;
-                    saveState(); // on synchronise aussi en local
+                    // Merger avec l'état local existant
+                    const localState = { ...appState };
+                    appState = mergeStates(localState, cloudState);
+                    console.log('✅ État initial synchronisé');
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+                } else {
+                    // Pas de données cloud, uploader le local si on a des données
+                    if (appState.tasks.length > 0) {
+                        console.log('⬆️ Upload des données locales vers le cloud');
+                        await saveToCloud(appState);
+                    }
                 }
             } catch (e) {
-                console.error('Erreur chargement état cloud initial:', e);
+                console.error('❌ Erreur chargement état cloud initial:', e);
             }
         }
 
@@ -616,16 +687,26 @@ function init() {
                 try {
                     const cloudState2 = await loadFromCloud();
                     if (cloudState2) {
-                        appState = cloudState2;
-                        saveState();
+                        // Merger avec l'état local actuel
+                        const localState = { ...appState };
+                        appState = mergeStates(localState, cloudState2);
+                        console.log('✅ État synchronisé après login');
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
                         render();
                         return;
+                    } else {
+                        // Pas de données cloud, uploader le local
+                        if (appState.tasks.length > 0) {
+                            console.log('⬆️ Upload des données locales vers le cloud');
+                            await saveToCloud(appState);
+                        }
                     }
                 } catch (e) {
-                    console.error('Erreur chargement état cloud après changement auth:', e);
+                    console.error('❌ Erreur chargement état cloud après changement auth:', e);
                 }
             } else {
-                // Si déconnexion, on garde l'état local, juste on re-render
+                // Si déconnexion, on garde l'état local
+                console.log('💾 Déconnecté, mode local uniquement');
                 render();
             }
         });
