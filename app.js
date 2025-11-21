@@ -135,7 +135,9 @@ async function saveToCloud(state) {
         }, { onConflict: 'user_id' });
 
     if (error) {
-        console.error('Erreur sauvegarde cloud:', error);
+        console.error('❌ Erreur sauvegarde cloud:', error);
+    } else {
+        console.log('☁️✅ Sauvegarde cloud réussie');
     }
 }
 
