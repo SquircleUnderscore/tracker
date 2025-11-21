@@ -118,6 +118,19 @@ body {
     color: #666;
 }
 
+.auth-section {
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+}
+
+.user-email {
+    color: #575279;
+}
+
 /* Main Content */
 .main-content {
     background-color: #fffaf3;
@@ -131,11 +144,6 @@ body {
     gap: 10px;
     margin-bottom: 20px;
     justify-content: space-between;
-}
-
-.export-import-controls {
-    display: flex;
-    gap: 10px;
 }
 
 /* Buttons */

@@ -27,6 +27,9 @@ let appState = {
     taskStates: {}
 };
 
+let currentUser = null;
+let cloudSaveTimeout = null;
+
 // ========================================
 // UTILITY FUNCTIONS
 // ========================================
@@ -105,41 +108,55 @@ function loadState() {
 
 function saveState() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+
+    if (cloudSaveTimeout) clearTimeout(cloudSaveTimeout);
+    cloudSaveTimeout = setTimeout(() => {
+        saveToCloud(appState);
+    }, 1000);
 }
 
-function exportData() {
-    const dataStr = JSON.stringify(appState, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `habit-tracker-${formatDate(new Date())}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    alert('Données exportées!');
+// ========================================
+// SUPABASE CLOUD SYNC
+// ========================================
+
+async function saveToCloud(state) {
+    if (!window.supabaseClient || !currentUser) return;
+
+    const userId = currentUser.id;
+
+    const { error } = await supabaseClient
+        .from('habit_states')
+        .upsert({
+            user_id: userId,
+            data: state,
+            updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+
+    if (error) {
+        console.error('Erreur sauvegarde cloud:', error);
+    }
 }
 
-function importData(file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        try {
-            const imported = JSON.parse(e.target.result);
-            if (imported.tasks && imported.taskStates) {
-                appState = imported;
-                saveState();
-                render();
-                alert('Données importées avec succès!');
-            } else {
-                alert('Format de fichier invalide');
-            }
-        } catch (error) {
-            console.error('Error importing data:', error);
-            alert('Erreur lors de l\'importation');
-        }
-    };
-    reader.readAsText(file);
+async function loadFromCloud() {
+    if (!window.supabaseClient || !currentUser) return null;
+
+    const userId = currentUser.id;
+
+    const { data, error } = await supabaseClient
+        .from('habit_states')
+        .select('data, updated_at')
+        .eq('user_id', userId)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    if (error) {
+        console.error('Erreur chargement cloud:', error);
+        return null;
+    }
+
+    if (!data) return null;
+    return data.data;
 }
 
 // ========================================
@@ -158,10 +175,15 @@ function closeModal() {
     const modal = document.getElementById('taskModal');
     const overlay = document.getElementById('modalOverlay');
     modal.classList.remove('active');
-    overlay.classList.remove('active');
     document.getElementById('taskName').value = '';
     document.getElementById('selectedIcon').value = 'fa-star';
     updateIconSelection('fa-star');
+
+    // Si la modal d'auth n'est pas active, on peut masquer l'overlay
+    const authModal = document.getElementById('authModal');
+    if (!authModal || !authModal.classList.contains('active')) {
+        overlay.classList.remove('active');
+    }
 }
 
 function updateIconSelection(iconClass) {
@@ -349,6 +371,44 @@ function render() {
 }
 
 // ========================================
+// AUTH UI
+// ========================================
+
+function updateAuthUI() {
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const userEmailSpan = document.getElementById('userEmail');
+
+    if (!loginBtn || !logoutBtn || !userEmailSpan) return;
+
+    if (currentUser) {
+        loginBtn.style.display = 'none';
+        logoutBtn.style.display = 'inline-block';
+        userEmailSpan.textContent = currentUser.email || '';
+    } else {
+        loginBtn.style.display = 'inline-block';
+        logoutBtn.style.display = 'none';
+        userEmailSpan.textContent = '';
+    }
+}
+
+function openAuthModal() {
+    const modal = document.getElementById('authModal');
+    const overlay = document.getElementById('modalOverlay');
+    if (!modal || !overlay) return;
+    modal.classList.add('active');
+    overlay.classList.add('active');
+}
+
+function closeAuthModal() {
+    const modal = document.getElementById('authModal');
+    if (!modal) return;
+    modal.classList.remove('active');
+    // On ne retire pas forcément l'overlay ici, pour éviter
+    // de casser la modal de tâche si elle est ouverte.
+}
+
+// ========================================
 // EVENT LISTENERS
 // ========================================
 
@@ -357,31 +417,123 @@ function initializeEventListeners() {
     document.getElementById('modalCreateBtn').addEventListener('click', createTask);
     document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
     document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
-    document.getElementById('modalOverlay').addEventListener('click', closeModal);
-    
+
+    const overlay = document.getElementById('modalOverlay');
+    overlay.addEventListener('click', () => {
+        closeModal();
+        closeAuthModal();
+        overlay.classList.remove('active');
+    });
+
     document.getElementById('taskModal').addEventListener('click', (e) => {
         e.stopPropagation();
     });
-    
+
+    const authModal = document.getElementById('authModal');
+    if (authModal) {
+        authModal.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
+
     document.getElementById('taskName').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             createTask();
         }
     });
-    
-    document.getElementById('exportBtn').addEventListener('click', exportData);
-    
-    document.getElementById('importBtn').addEventListener('click', () => {
-        document.getElementById('importFile').click();
-    });
-    
-    document.getElementById('importFile').addEventListener('change', (e) => {
-        if (e.target.files[0]) {
-            importData(e.target.files[0]);
-            e.target.value = '';
-        }
-    });
-    
+
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const loginGithubBtn = document.getElementById('loginGithubBtn');
+    const loginGoogleBtn = document.getElementById('loginGoogleBtn');
+    const loginEmailBtn = document.getElementById('loginEmailBtn');
+    const authModalCloseBtn = document.getElementById('authModalCloseBtn');
+
+    if (loginBtn) {
+        loginBtn.addEventListener('click', () => {
+            openAuthModal();
+        });
+    }
+
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await supabaseClient.auth.signOut();
+            } catch (e) {
+                console.error('Erreur logout:', e);
+            }
+        });
+    }
+
+    if (loginGithubBtn) {
+        loginGithubBtn.addEventListener('click', async () => {
+            try {
+                const { error } = await supabaseClient.auth.signInWithOAuth({
+                    provider: 'github'
+                });
+                if (error) {
+                    console.error('Erreur login GitHub:', error);
+                    alert('Erreur de connexion GitHub');
+                }
+            } catch (e) {
+                console.error('Erreur login GitHub:', e);
+            }
+        });
+    }
+
+    if (loginGoogleBtn) {
+        loginGoogleBtn.addEventListener('click', async () => {
+            try {
+                const { error } = await supabaseClient.auth.signInWithOAuth({
+                    provider: 'google'
+                });
+                if (error) {
+                    console.error('Erreur login Google:', error);
+                    alert('Erreur de connexion Google');
+                }
+            } catch (e) {
+                console.error('Erreur login Google:', e);
+            }
+        });
+    }
+
+    if (loginEmailBtn) {
+        loginEmailBtn.addEventListener('click', async () => {
+            const emailInput = document.getElementById('loginEmailInput');
+            const email = emailInput.value.trim();
+            if (!email) {
+                alert('Veuillez entrer une adresse email');
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient.auth.signInWithOtp({ email });
+                if (error) {
+                    console.error('Erreur envoi lien magique:', error);
+                    alert('Erreur lors de l\'envoi du lien magique');
+                } else {
+                    alert('Vérifiez votre email pour le lien de connexion');
+                    emailInput.value = '';
+                    closeAuthModal();
+                    overlay.classList.remove('active');
+                }
+            } catch (e) {
+                console.error('Erreur envoi lien magique:', e);
+            }
+        });
+    }
+
+    if (authModalCloseBtn) {
+        authModalCloseBtn.addEventListener('click', () => {
+            closeAuthModal();
+            // Si la modal de tâche n'est pas active, on enlève l'overlay
+            const taskModal = document.getElementById('taskModal');
+            if (!taskModal || !taskModal.classList.contains('active')) {
+                overlay.classList.remove('active');
+            }
+        });
+    }
+
     renderIconGrid();
 }
 
@@ -390,9 +542,66 @@ function initializeEventListeners() {
 // ========================================
 
 function init() {
+    // Charger le state local
     loadState();
+
+    // Initialiser les listeners (boutons, modales, etc.)
     initializeEventListeners();
-    render();
+
+    // Si Supabase n'est pas présent, on se contente du local
+    if (!window.supabaseClient) {
+        render();
+        return;
+    }
+
+    // Récupérer l'utilisateur actuel
+    supabaseClient.auth.getUser().then(async ({ data, error }) => {
+        if (error) {
+            console.error('Erreur getUser:', error);
+        }
+
+        currentUser = data?.user || null;
+        updateAuthUI();
+
+        // Si un utilisateur est connecté, tenter de charger depuis le cloud
+        if (currentUser) {
+            try {
+                const cloudState = await loadFromCloud();
+                if (cloudState) {
+                    appState = cloudState;
+                    saveState(); // on synchronise aussi en local
+                }
+            } catch (e) {
+                console.error('Erreur chargement état cloud initial:', e);
+            }
+        }
+
+        // S'abonner aux changements d'authentification
+        supabaseClient.auth.onAuthStateChange(async (event, session) => {
+            currentUser = session?.user || null;
+            updateAuthUI();
+
+            if (currentUser) {
+                try {
+                    const cloudState2 = await loadFromCloud();
+                    if (cloudState2) {
+                        appState = cloudState2;
+                        saveState();
+                        render();
+                        return;
+                    }
+                } catch (e) {
+                    console.error('Erreur chargement état cloud après changement auth:', e);
+                }
+            } else {
+                // Si déconnexion, on garde l'état local, juste on re-render
+                render();
+            }
+        });
+
+        // Premier rendu après init + éventuelle synchro cloud
+        render();
+    });
 }
 
 if (document.readyState === 'loading') {

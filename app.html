@@ -23,10 +23,10 @@
             <!-- Controls -->
             <div class="controls">
                 <button class="btn btn-primary" id="createTaskBtn">+ Créer une tâche</button>
-                <div class="export-import-controls">
-                    <button class="btn" id="exportBtn">Exporter</button>
-                    <button class="btn" id="importBtn">Importer</button>
-                    <input type="file" id="importFile" accept=".json" style="display: none;">
+                <div id="authSection" class="export-import-controls auth-section">
+                    <span id="userEmail" class="user-email"></span>
+                    <button class="btn" id="loginBtn">Se connecter</button>
+                    <button class="btn" id="logoutBtn" style="display:none;">Se déconnecter</button>
                 </div>
             </div>
 
@@ -84,6 +84,48 @@
     <!-- Modal Overlay -->
     <div class="modal-overlay" id="modalOverlay"></div>
 
+    <!-- Auth Modal -->
+    <div class="modal" id="authModal">
+        <div class="modal-header">
+            <h2>Connexion</h2>
+            <button class="modal-close" id="authModalCloseBtn">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <p>Choisis une méthode de connexion :</p>
+            </div>
+            <div class="form-group">
+                <button class="btn btn-primary" id="loginGithubBtn">
+                    <i class="fab fa-github"></i>&nbsp; Continuer avec GitHub
+                </button>
+            </div>
+            <div class="form-group">
+                <button class="btn btn-primary" id="loginGoogleBtn">
+                    <i class="fab fa-google"></i>&nbsp; Continuer avec Google
+                </button>
+            </div>
+            <div class="form-group">
+                <label for="loginEmailInput">Ou par email</label>
+                <input type="email" id="loginEmailInput" class="form-input" placeholder="ton@mail.com">
+            </div>
+            <div class="form-group">
+                <button class="btn" id="loginEmailBtn">Recevoir un lien magique</button>
+            </div>
+            <p style="font-size:0.85rem;color:#666;">
+                Un lien de connexion t'est envoyé par email.
+            </p>
+        </div>
+    </div>
+
+    <!-- Supabase client (v2) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // REMPLACE CES CONSTANTES PAR CELLES DE TON PROJET SUPABASE
+        const SUPABASE_URL = 'https://qvixehlraqjhegazqrsu.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_Z47ybgirGdFnmDtOxufnUw_9hWMKHNL';
+
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    </script>
     <script src="app.js"></script>
 </body>
 </html>
