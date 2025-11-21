@@ -1,7 +1,3 @@
-// ========================================
-// HABIT TRACKER - SIMPLE VERSION
-// ========================================
-
 const STORAGE_KEY = 'habitTrackerData';
 const ICON_OPTIONS = [
     'fa-star',
@@ -30,6 +26,7 @@ let appState = {
 
 let currentUser = null;
 let cloudSaveTimeout = null;
+let cloudSaveInProgress = false;
 
 // ========================================
 // UTILITY FUNCTIONS
@@ -37,9 +34,8 @@ let cloudSaveTimeout = null;
 
 function getWeekStart() {
     const now = new Date();
-    const day = now.getDay(); // 0 = dimanche, 1 = lundi, etc.
+    const day = now.getDay(); 
     const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-    // On renvoie un nouvel objet Date pour éviter de modifier "now" directement
     return new Date(now.getFullYear(), now.getMonth(), diff);
 }
 
@@ -88,7 +84,7 @@ function getWeekLabel() {
 }
 
 function generateId() {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    return Date.now().toString(36) + Math.random().toString(36).substring(2);
 }
 
 // ========================================
@@ -100,9 +96,14 @@ function loadState() {
     if (stored) {
         try {
             appState = JSON.parse(stored);
+            if (!appState.lastModified) {
+                appState.lastModified = new Date().toISOString();
+            }
+            if (!appState.tasks) appState.tasks = [];
+            if (!appState.taskStates) appState.taskStates = {};
         } catch (e) {
-            console.error('Error loading state:', e);
-            appState = { tasks: [], taskStates: {} };
+            console.error('❌ Erreur chargement state:', e);
+            appState = { tasks: [], taskStates: {}, lastModified: new Date().toISOString() };
         }
     }
 }
@@ -123,21 +124,30 @@ function saveState() {
 
 async function saveToCloud(state) {
     if (!window.supabaseClient || !currentUser) return;
+    if (cloudSaveInProgress) {
+        console.log('⏳ Sauvegarde cloud déjà en cours, ignorée');
+        return;
+    }
 
+    cloudSaveInProgress = true;
     const userId = currentUser.id;
 
-    const { error } = await supabaseClient
-        .from('habit_states')
-        .upsert({
-            user_id: userId,
-            data: state,
-            updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' });
+    try {
+        const { error } = await supabaseClient
+            .from('habit_states')
+            .upsert({
+                user_id: userId,
+                data: state,
+                updated_at: new Date().toISOString()
+            }, { onConflict: 'user_id' });
 
-    if (error) {
-        console.error('❌ Erreur sauvegarde cloud:', error);
-    } else {
-        console.log('☁️✅ Sauvegarde cloud réussie');
+        if (error) {
+            console.error('❌ Erreur sauvegarde cloud:', error);
+        } else {
+            console.log('☁️✅ Sauvegarde cloud réussie');
+        }
+    } finally {
+        cloudSaveInProgress = false;
     }
 }
 
@@ -168,46 +178,42 @@ async function loadFromCloud() {
     return data.data;
 }
 
-// Fonction pour merger intelligemment les états local et cloud
 function mergeStates(localState, cloudState) {
     if (!localState || !localState.tasks) return cloudState;
     if (!cloudState || !cloudState.tasks) return localState;
 
     console.log('🔄 Merge local/cloud...');
     
-    // Comparer les timestamps
     const localTime = localState.lastModified ? new Date(localState.lastModified).getTime() : 0;
     const cloudTime = cloudState.lastModified ? new Date(cloudState.lastModified).getTime() : 0;
-
-    // Si le cloud est plus récent, on le prend
-    if (cloudTime > localTime) {
-        console.log('☁️ Cloud plus récent, utilisation du cloud');
-        return cloudState;
-    }
-
-    // Si le local est plus récent, on le prend
-    if (localTime > cloudTime) {
-        console.log('💾 Local plus récent, utilisation du local');
-        return localState;
-    }
-
-    // Sinon on merge en combinant les tâches uniques
-    const mergedTasks = [...cloudState.tasks];
-    const cloudTaskIds = new Set(cloudState.tasks.map(t => t.id));
     
-    localState.tasks.forEach(localTask => {
-        if (!cloudTaskIds.has(localTask.id)) {
-            mergedTasks.push(localTask);
+    const timeDiff = Math.abs(cloudTime - localTime);
+    
+    if (timeDiff > 5000) {
+        if (cloudTime > localTime) {
+            console.log('☁️ Cloud plus récent, utilisation du cloud');
+            return cloudState;
+        }
+        if (localTime > cloudTime) {
+            console.log('💾 Local plus récent, utilisation du local');
+            return localState;
+        }
+    }
+
+    console.log('🔀 Merge combiné des deux états');
+    const mergedTasksMap = new Map();
+        cloudState.tasks.forEach(task => mergedTasksMap.set(task.id, task));
+        localState.tasks.forEach(task => {
+        if (!mergedTasksMap.has(task.id)) {
+            mergedTasksMap.set(task.id, task);
         }
     });
 
-    // Merger les états des tâches
     const mergedTaskStates = { ...cloudState.taskStates };
     Object.keys(localState.taskStates).forEach(taskId => {
         if (!mergedTaskStates[taskId]) {
             mergedTaskStates[taskId] = localState.taskStates[taskId];
         } else {
-            // Merger les dates individuelles
             mergedTaskStates[taskId] = {
                 ...mergedTaskStates[taskId],
                 ...localState.taskStates[taskId]
@@ -215,9 +221,8 @@ function mergeStates(localState, cloudState) {
         }
     });
 
-    console.log('🔀 Merge combiné effectué');
     return {
-        tasks: mergedTasks,
+        tasks: Array.from(mergedTasksMap.values()),
         taskStates: mergedTaskStates,
         lastModified: new Date().toISOString()
     };
@@ -284,7 +289,7 @@ function createTask() {
     saveState();
     closeModal();
     render();
-    alert(`Tâche "${taskName}" créée!`);
+    console.log(`✅ Tâche "${taskName}" créée`);
 }
 
 function deleteTask(taskId) {
@@ -295,7 +300,7 @@ function deleteTask(taskId) {
         delete appState.taskStates[taskId];
         saveState();
         render();
-        alert('Tâche supprimée');
+        console.log(`🗑️ Tâche "${taskName}" supprimée`);
     }
 }
 
@@ -470,8 +475,6 @@ function closeAuthModal() {
     const modal = document.getElementById('authModal');
     if (!modal) return;
     modal.classList.remove('active');
-    // On ne retire pas forcément l'overlay ici, pour éviter
-    // de casser la modal de tâche si elle est ouverte.
 }
 
 // ========================================
@@ -507,6 +510,15 @@ function initializeEventListeners() {
             createTask();
         }
     });
+
+    const loginEmailInput = document.getElementById('loginEmailInput');
+    if (loginEmailInput) {
+        loginEmailInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('loginEmailBtn').click();
+            }
+        });
+    }
 
     const loginBtn = document.getElementById('loginBtn');
     const logoutBtn = document.getElementById('logoutBtn');
@@ -594,16 +606,17 @@ function initializeEventListeners() {
                 });
                 if (error) {
                     console.error('❌ Erreur envoi lien magique:', error);
-                    alert('Erreur lors de l\'envoi du lien magique: ' + error.message);
+                    alert('Erreur: ' + error.message);
                 } else {
                     console.log('✅ Lien magique envoyé');
-                    alert('Vérifiez votre email pour le lien de connexion');
+                    alert('✉️ Email envoyé ! Vérifie ta boîte mail.');
                     emailInput.value = '';
                     closeAuthModal();
                     overlay.classList.remove('active');
                 }
             } catch (e) {
                 console.error('❌ Exception envoi lien magique:', e);
+                alert('Erreur réseau. Réessaie.');
             }
         });
     }
@@ -629,13 +642,10 @@ function initializeEventListeners() {
 function init() {
     console.log('🚀 Init démarré');
     
-    // Charger le state local
     loadState();
 
-    // Initialiser les listeners (boutons, modales, etc.)
     initializeEventListeners();
 
-    // Si Supabase n'est pas présent, on se contente du local
     if (!window.supabaseClient) {
         console.log('⚠️ Supabase client non trouvé');
         render();
@@ -644,7 +654,6 @@ function init() {
 
     console.log('✅ Supabase client OK');
 
-    // Récupérer l'utilisateur actuel
     supabaseClient.auth.getUser().then(async ({ data, error }) => {
         if (error) {
             console.error('❌ Erreur getUser:', error);
@@ -654,18 +663,15 @@ function init() {
         console.log('👤 User actuel:', currentUser ? currentUser.email : 'non connecté');
         updateAuthUI();
 
-        // Si un utilisateur est connecté, tenter de charger depuis le cloud
         if (currentUser) {
             try {
                 const cloudState = await loadFromCloud();
                 if (cloudState) {
-                    // Merger avec l'état local existant
                     const localState = { ...appState };
                     appState = mergeStates(localState, cloudState);
                     console.log('✅ État initial synchronisé');
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
                 } else {
-                    // Pas de données cloud, uploader le local si on a des données
                     if (appState.tasks.length > 0) {
                         console.log('⬆️ Upload des données locales vers le cloud');
                         await saveToCloud(appState);
@@ -676,7 +682,6 @@ function init() {
             }
         }
 
-        // S'abonner aux changements d'authentification
         supabaseClient.auth.onAuthStateChange(async (event, session) => {
             console.log('🔄 Auth state change:', event, session?.user?.email || 'null');
             currentUser = session?.user || null;
@@ -689,7 +694,6 @@ function init() {
                 try {
                     const cloudState2 = await loadFromCloud();
                     if (cloudState2) {
-                        // Merger avec l'état local actuel
                         const localState = { ...appState };
                         appState = mergeStates(localState, cloudState2);
                         console.log('✅ État synchronisé après login');
@@ -697,7 +701,6 @@ function init() {
                         render();
                         return;
                     } else {
-                        // Pas de données cloud, uploader le local
                         if (appState.tasks.length > 0) {
                             console.log('⬆️ Upload des données locales vers le cloud');
                             await saveToCloud(appState);
@@ -707,13 +710,11 @@ function init() {
                     console.error('❌ Erreur chargement état cloud après changement auth:', e);
                 }
             } else {
-                // Si déconnexion, on garde l'état local
                 console.log('💾 Déconnecté, mode local uniquement');
                 render();
             }
         });
 
-        // Premier rendu après init + éventuelle synchro cloud
         render();
     });
 }
