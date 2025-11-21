@@ -469,7 +469,10 @@ function initializeEventListeners() {
         loginGithubBtn.addEventListener('click', async () => {
             try {
                 const { error } = await supabaseClient.auth.signInWithOAuth({
-                    provider: 'github'
+                    provider: 'github',
+                    options: {
+                        redirectTo: 'https://tracker.squircle.computer/app'
+                    }
                 });
                 if (error) {
                     console.error('Erreur login GitHub:', error);
@@ -485,7 +488,10 @@ function initializeEventListeners() {
         loginGoogleBtn.addEventListener('click', async () => {
             try {
                 const { error } = await supabaseClient.auth.signInWithOAuth({
-                    provider: 'google'
+                    provider: 'google',
+                    options: {
+                        redirectTo: 'https://tracker.squircle.computer/app'
+                    }
                 });
                 if (error) {
                     console.error('Erreur login Google:', error);
@@ -580,7 +586,9 @@ function init() {
         supabaseClient.auth.onAuthStateChange(async (event, session) => {
             currentUser = session?.user || null;
             updateAuthUI();
-
+            if (window.location.pathname === '/app' && window.location.hash) {
+                window.history.replaceState({}, document.title, '/app');
+            }
             if (currentUser) {
                 try {
                     const cloudState2 = await loadFromCloud();
