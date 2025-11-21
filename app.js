@@ -382,10 +382,12 @@ function updateAuthUI() {
     if (!loginBtn || !logoutBtn || !userEmailSpan) return;
 
     if (currentUser) {
+        console.log('🟢 UI: Connecté -', currentUser.email);
         loginBtn.style.display = 'none';
         logoutBtn.style.display = 'inline-block';
         userEmailSpan.textContent = currentUser.email || '';
     } else {
+        console.log('🔴 UI: Déconnecté');
         loginBtn.style.display = 'inline-block';
         logoutBtn.style.display = 'none';
         userEmailSpan.textContent = '';
@@ -467,38 +469,44 @@ function initializeEventListeners() {
 
     if (loginGithubBtn) {
         loginGithubBtn.addEventListener('click', async () => {
+            console.log('🔐 Tentative login GitHub...');
             try {
-                const { error } = await supabaseClient.auth.signInWithOAuth({
+                const { data, error } = await supabaseClient.auth.signInWithOAuth({
                     provider: 'github',
                     options: {
                         redirectTo: 'https://tracker.squircle.computer/app'
                     }
                 });
                 if (error) {
-                    console.error('Erreur login GitHub:', error);
-                    alert('Erreur de connexion GitHub');
+                    console.error('❌ Erreur login GitHub:', error);
+                    alert('Erreur de connexion GitHub: ' + error.message);
+                } else {
+                    console.log('✅ Redirection GitHub initiée');
                 }
             } catch (e) {
-                console.error('Erreur login GitHub:', e);
+                console.error('❌ Exception login GitHub:', e);
             }
         });
     }
 
     if (loginGoogleBtn) {
         loginGoogleBtn.addEventListener('click', async () => {
+            console.log('🔐 Tentative login Google...');
             try {
-                const { error } = await supabaseClient.auth.signInWithOAuth({
+                const { data, error } = await supabaseClient.auth.signInWithOAuth({
                     provider: 'google',
                     options: {
                         redirectTo: 'https://tracker.squircle.computer/app'
                     }
                 });
                 if (error) {
-                    console.error('Erreur login Google:', error);
-                    alert('Erreur de connexion Google');
+                    console.error('❌ Erreur login Google:', error);
+                    alert('Erreur de connexion Google: ' + error.message);
+                } else {
+                    console.log('✅ Redirection Google initiée');
                 }
             } catch (e) {
-                console.error('Erreur login Google:', e);
+                console.error('❌ Exception login Google:', e);
             }
         });
     }
@@ -512,19 +520,26 @@ function initializeEventListeners() {
                 return;
             }
 
+            console.log('📧 Tentative envoi magic link à:', email);
             try {
-                const { error } = await supabaseClient.auth.signInWithOtp({ email });
+                const { data, error } = await supabaseClient.auth.signInWithOtp({ 
+                    email,
+                    options: {
+                        emailRedirectTo: 'https://tracker.squircle.computer/app'
+                    }
+                });
                 if (error) {
-                    console.error('Erreur envoi lien magique:', error);
-                    alert('Erreur lors de l\'envoi du lien magique');
+                    console.error('❌ Erreur envoi lien magique:', error);
+                    alert('Erreur lors de l\'envoi du lien magique: ' + error.message);
                 } else {
+                    console.log('✅ Lien magique envoyé');
                     alert('Vérifiez votre email pour le lien de connexion');
                     emailInput.value = '';
                     closeAuthModal();
                     overlay.classList.remove('active');
                 }
             } catch (e) {
-                console.error('Erreur envoi lien magique:', e);
+                console.error('❌ Exception envoi lien magique:', e);
             }
         });
     }
@@ -548,6 +563,8 @@ function initializeEventListeners() {
 // ========================================
 
 function init() {
+    console.log('🚀 Init démarré');
+    
     // Charger le state local
     loadState();
 
@@ -556,17 +573,21 @@ function init() {
 
     // Si Supabase n'est pas présent, on se contente du local
     if (!window.supabaseClient) {
+        console.log('⚠️ Supabase client non trouvé');
         render();
         return;
     }
 
+    console.log('✅ Supabase client OK');
+
     // Récupérer l'utilisateur actuel
     supabaseClient.auth.getUser().then(async ({ data, error }) => {
         if (error) {
-            console.error('Erreur getUser:', error);
+            console.error('❌ Erreur getUser:', error);
         }
 
         currentUser = data?.user || null;
+        console.log('👤 User actuel:', currentUser ? currentUser.email : 'non connecté');
         updateAuthUI();
 
         // Si un utilisateur est connecté, tenter de charger depuis le cloud
@@ -584,10 +605,12 @@ function init() {
 
         // S'abonner aux changements d'authentification
         supabaseClient.auth.onAuthStateChange(async (event, session) => {
+            console.log('🔄 Auth state change:', event, session?.user?.email || 'null');
             currentUser = session?.user || null;
             updateAuthUI();
-            if (window.location.pathname === '/app' && window.location.hash) {
-                window.history.replaceState({}, document.title, '/app');
+            if (window.location.hash && window.location.hash.includes('access_token')) {
+                console.log('🧹 Nettoyage hash URL');
+                window.history.replaceState({}, document.title, window.location.pathname);
             }
             if (currentUser) {
                 try {
