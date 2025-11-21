@@ -124,7 +124,15 @@
         const SUPABASE_URL = 'https://qvixehlraqjhegazqrsu.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2aXhlaGxyYXFqaGVnYXpxcnN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3NDYxMjksImV4cCI6MjA3OTMyMjEyOX0.IBgf1CCDy0NrjKmDRwDPRIOrOG8PNP440FXJZLswrYQ';
 
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Vérifier que Supabase est bien chargé
+        if (typeof supabase === 'undefined') {
+            console.error('❌ Supabase library not loaded!');
+            alert('Erreur: Supabase non chargé. Vérifie ta connexion internet.');
+        } else {
+            console.log('✅ Supabase library loaded');
+            window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            console.log('✅ Supabase client created');
+        }
     </script>
     <script src="app.js"></script>
 </body>
