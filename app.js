@@ -104,6 +104,34 @@ function goToCurrentWeek() {
 }
 
 // ========================================
+// TOAST NOTIFICATIONS
+// ========================================
+
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    const icon = type === 'success' ? 'fa-check-circle' : 
+                 type === 'error' ? 'fa-exclamation-circle' : 
+                 'fa-info-circle';
+    
+    toast.innerHTML = `
+        <i class="fas ${icon}"></i>
+        <span>${message}</span>
+    `;
+    
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.classList.add('hiding');
+        setTimeout(() => {
+            container.removeChild(toast);
+        }, 300);
+    }, 3000);
+}
+
+// ========================================
 // STORAGE FUNCTIONS
 // ========================================
 
@@ -118,7 +146,6 @@ function loadState() {
             if (!appState.tasks) appState.tasks = [];
             if (!appState.taskStates) appState.taskStates = {};
         } catch (e) {
-            console.error('❌ Erreur chargement state:', e);
             appState = { tasks: [], taskStates: {}, lastModified: new Date().toISOString() };
         }
     }
@@ -181,24 +208,20 @@ async function loadFromCloud() {
         .maybeSingle();
 
     if (error) {
-        console.error('❌ Erreur chargement cloud:', error);
+        showToast('Erreur de chargement cloud', 'error');
         return null;
     }
 
     if (!data) {
-        console.log('☁️ Pas de données cloud, utilisation du local');
         return null;
     }
     
-    console.log('☁️ Données cloud chargées:', data.updated_at);
     return data.data;
 }
 
 function mergeStates(localState, cloudState) {
     if (!localState || !localState.tasks) return cloudState;
     if (!cloudState || !cloudState.tasks) return localState;
-
-    console.log('🔄 Merge local/cloud...');
     
     const localTime = localState.lastModified ? new Date(localState.lastModified).getTime() : 0;
     const cloudTime = cloudState.lastModified ? new Date(cloudState.lastModified).getTime() : 0;
@@ -207,16 +230,13 @@ function mergeStates(localState, cloudState) {
     
     if (timeDiff > 5000) {
         if (cloudTime > localTime) {
-            console.log('☁️ Cloud plus récent, utilisation du cloud');
             return cloudState;
         }
         if (localTime > cloudTime) {
-            console.log('💾 Local plus récent, utilisation du local');
             return localState;
         }
     }
 
-    console.log('🔀 Merge combiné des deux états');
     const mergedTasksMap = new Map();
         cloudState.tasks.forEach(task => mergedTasksMap.set(task.id, task));
         localState.tasks.forEach(task => {
@@ -248,12 +268,36 @@ function mergeStates(localState, cloudState) {
 // MODAL FUNCTIONS
 // ========================================
 
-function openModal() {
+function openModal(taskId = null) {
     const modal = document.getElementById('taskModal');
     const overlay = document.getElementById('modalOverlay');
+    const modalTitle = document.getElementById('taskModalTitle');
+    const modalBtn = document.getElementById('modalCreateBtn');
+    const taskNameInput = document.getElementById('taskName');
+    const editingTaskIdInput = document.getElementById('editingTaskId');
+    
+    if (taskId) {
+        // Mode édition
+        const task = appState.tasks.find(t => t.id === taskId);
+        if (task) {
+            modalTitle.textContent = 'Modifier la tâche';
+            modalBtn.textContent = 'Enregistrer';
+            taskNameInput.value = task.name;
+            editingTaskIdInput.value = taskId;
+            updateIconSelection(task.icon);
+        }
+    } else {
+        // Mode création
+        modalTitle.textContent = 'Créer une nouvelle tâche';
+        modalBtn.textContent = 'Créer';
+        taskNameInput.value = '';
+        editingTaskIdInput.value = '';
+        updateIconSelection('fa-star');
+    }
+    
     modal.classList.add('active');
     overlay.classList.add('active');
-    document.getElementById('taskName').focus();
+    taskNameInput.focus();
 }
 
 function closeModal() {
@@ -262,6 +306,7 @@ function closeModal() {
     modal.classList.remove('active');
     document.getElementById('taskName').value = '';
     document.getElementById('selectedIcon').value = 'fa-star';
+    document.getElementById('editingTaskId').value = '';
     updateIconSelection('fa-star');
 
     // Si la modal d'auth n'est pas active, on peut masquer l'overlay
@@ -285,27 +330,42 @@ function updateIconSelection(iconClass) {
 function createTask() {
     const taskName = document.getElementById('taskName').value.trim();
     const selectedIcon = document.getElementById('selectedIcon').value;
+    const editingTaskId = document.getElementById('editingTaskId').value;
     
     if (!taskName) {
-        alert('Veuillez entrer un nom de tâche');
+        showToast('Veuillez entrer un nom de tâche', 'error');
         return;
     }
     
-    const taskId = generateId();
-    const task = {
-        id: taskId,
-        name: taskName,
-        icon: selectedIcon,
-        createdAt: formatDate(new Date())
-    };
-    
-    appState.tasks.push(task);
-    appState.taskStates[taskId] = {};
-    
-    saveState();
-    closeModal();
-    render();
-    console.log(`✅ Tâche "${taskName}" créée`);
+    if (editingTaskId) {
+        // Mode édition
+        const task = appState.tasks.find(t => t.id === editingTaskId);
+        if (task) {
+            task.name = taskName;
+            task.icon = selectedIcon;
+            saveState();
+            closeModal();
+            render();
+            showToast('Tâche modifiée avec succès', 'success');
+        }
+    } else {
+        // Mode création
+        const taskId = generateId();
+        const task = {
+            id: taskId,
+            name: taskName,
+            icon: selectedIcon,
+            createdAt: formatDate(new Date())
+        };
+        
+        appState.tasks.push(task);
+        appState.taskStates[taskId] = {};
+        
+        saveState();
+        closeModal();
+        render();
+        showToast('Tâche créée avec succès', 'success');
+    }
 }
 
 function deleteTask(taskId) {
@@ -316,7 +376,7 @@ function deleteTask(taskId) {
         delete appState.taskStates[taskId];
         saveState();
         render();
-        console.log(`🗑️ Tâche "${taskName}" supprimée`);
+        showToast(`Tâche "${taskName}" supprimée`, 'info');
     }
 }
 
@@ -381,9 +441,15 @@ function renderIconGrid() {
 function renderTaskRow(task) {
     const taskRow = document.createElement('div');
     taskRow.className = 'task-row';
+    taskRow.setAttribute('draggable', 'true');
+    taskRow.setAttribute('data-task-id', task.id);
     
     const taskNameCell = document.createElement('div');
     taskNameCell.className = 'task-name-cell';
+    
+    const dragHandle = document.createElement('div');
+    dragHandle.className = 'task-drag-handle';
+    dragHandle.innerHTML = '<i class="fas fa-grip-vertical"></i>';
     
     const iconDiv = document.createElement('div');
     iconDiv.className = 'task-icon';
@@ -393,14 +459,26 @@ function renderTaskRow(task) {
     nameDiv.className = 'task-name';
     nameDiv.textContent = task.name;
     
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'task-actions';
+    
+    const editBtn = document.createElement('button');
+    editBtn.className = 'task-edit-btn';
+    editBtn.innerHTML = '<i class="fas fa-edit"></i>';
+    editBtn.addEventListener('click', () => openModal(task.id));
+    
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'task-delete-btn';
     deleteBtn.innerHTML = '×';
     deleteBtn.addEventListener('click', () => deleteTask(task.id));
     
+    actionsDiv.appendChild(editBtn);
+    actionsDiv.appendChild(deleteBtn);
+    
+    taskNameCell.appendChild(dragHandle);
     taskNameCell.appendChild(iconDiv);
     taskNameCell.appendChild(nameDiv);
-    taskNameCell.appendChild(deleteBtn);
+    taskNameCell.appendChild(actionsDiv);
     
     const taskDaysGrid = document.createElement('div');
     taskDaysGrid.className = 'task-days-grid';
@@ -436,7 +514,74 @@ function renderTaskRow(task) {
     taskRow.appendChild(taskNameCell);
     taskRow.appendChild(taskDaysGrid);
     
+    // Drag & Drop event listeners
+    taskRow.addEventListener('dragstart', handleDragStart);
+    taskRow.addEventListener('dragend', handleDragEnd);
+    taskRow.addEventListener('dragover', handleDragOver);
+    taskRow.addEventListener('drop', handleDrop);
+    taskRow.addEventListener('dragenter', handleDragEnter);
+    taskRow.addEventListener('dragleave', handleDragLeave);
+    
     return taskRow;
+}
+
+let draggedElement = null;
+
+function handleDragStart(e) {
+    draggedElement = e.currentTarget;
+    e.currentTarget.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+}
+
+function handleDragEnd(e) {
+    e.currentTarget.classList.remove('dragging');
+    document.querySelectorAll('.task-row').forEach(row => {
+        row.classList.remove('drag-over');
+    });
+    draggedElement = null;
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+function handleDragEnter(e) {
+    if (e.currentTarget !== draggedElement) {
+        e.currentTarget.classList.add('drag-over');
+    }
+}
+
+function handleDragLeave(e) {
+    e.currentTarget.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+    if (e.stopPropagation) {
+        e.stopPropagation();
+    }
+    
+    const dropTarget = e.currentTarget;
+    if (draggedElement && draggedElement !== dropTarget) {
+        const draggedId = draggedElement.getAttribute('data-task-id');
+        const targetId = dropTarget.getAttribute('data-task-id');
+        
+        const draggedIndex = appState.tasks.findIndex(t => t.id === draggedId);
+        const targetIndex = appState.tasks.findIndex(t => t.id === targetId);
+        
+        if (draggedIndex !== -1 && targetIndex !== -1) {
+            const [removed] = appState.tasks.splice(draggedIndex, 1);
+            appState.tasks.splice(targetIndex, 0, removed);
+            
+            saveState();
+            render();
+        }
+    }
+    
+    return false;
 }
 
 function render() {

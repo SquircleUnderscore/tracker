@@ -275,7 +275,7 @@ body {
 }
 
 .task-name-column {
-    width: 150px;
+    width: 250px;
     font-weight: bold;
     text-align: left;
 }
@@ -283,7 +283,7 @@ body {
 .days-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 10px;
+    gap: 5px;
     flex: 1;
 }
 
@@ -302,7 +302,7 @@ body {
 
 .task-row {
     display: flex;
-    gap: 10px;
+    gap: 5px;
     align-items: center;
     padding: 10px;
     background-color: #faf4ed;
@@ -310,11 +310,34 @@ body {
 }
 
 .task-name-cell {
-    width: 150px;
+    width: 250px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     font-weight: bold;
+    flex-shrink: 0;
+}
+
+.task-drag-handle {
+    cursor: grab;
+    color: #cecacd;
+    font-size: 1rem;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.task-drag-handle:active {
+    cursor: grabbing;
+}
+
+.task-row.dragging {
+    opacity: 0.5;
+}
+
+.task-row.drag-over {
+    border-top: 3px solid #56949f;
 }
 
 .task-icon {
@@ -324,11 +347,33 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 .task-name {
     flex: 1;
     word-break: break-word;
+    white-space: normal;
+}
+
+.task-actions {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.task-edit-btn {
+    background-color: #f2e9e100;
+    border: 2px solid #cecacd00;
+    color: #575279;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 5px 7px;
+}
+
+.task-edit-btn:hover {
+    color: #56949f;
 }
 
 .task-delete-btn {
@@ -348,14 +393,14 @@ body {
 .task-days-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 10px;
+    gap: 5px;
     flex: 1;
 }
 
 /* Day Cells */
 .day-cell {
-    width: 50px;
-    height: 50px;
+    width: 45px;
+    height: 45px;
     border: 2px solid #cecacd;
     background-color: white;
     cursor: pointer;
@@ -596,6 +641,89 @@ body {
 
 }
 
+/* Toast Notifications */
+.toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.toast {
+    background-color: #575279;
+    color: #FFFAF3;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 250px;
+    max-width: 400px;
+    animation: slideIn 0.3s ease-out;
+    pointer-events: auto;
+    font-size: 0.95rem;
+}
+
+.toast.success {
+    background-color: #4bbb70;
+}
+
+.toast.error {
+    background-color: #b4637a;
+}
+
+.toast.info {
+    background-color: #56949f;
+}
+
+.toast i {
+    font-size: 1.2rem;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+
+.toast.hiding {
+    animation: slideOut 0.3s ease-out forwards;
+}
+
+@media (max-width: 768px) {
+    .toast-container {
+        bottom: 10px;
+        right: 10px;
+        left: 10px;
+    }
+
+    .toast {
+        max-width: 100%;
+        font-size: 0.9rem;
+    }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .container {
@@ -631,6 +759,8 @@ body {
     .task-name-cell {
         width: 100%;
         justify-content: space-between;
+        gap: 8px;
+        flex-wrap: nowrap;
     }
 
     .task-icon {
@@ -639,6 +769,8 @@ body {
 
     .task-name {
         font-size: 0.95rem;
+        flex: 1;
+        min-width: 0;
     }
 
     .task-delete-btn {
@@ -648,7 +780,7 @@ body {
 
     .task-days-grid {
         width: 100%;
-        gap: 6px;
+        gap: 4px;
     }
 
     .week-header {
@@ -665,7 +797,7 @@ body {
 
     .days-grid {
         width: 100%;
-        gap: 6px;
+        gap: 4px;
     }
 
     .day-header {

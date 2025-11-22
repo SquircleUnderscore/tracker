@@ -66,7 +66,7 @@
 
     <div class="modal" id="taskModal">
         <div class="modal-header">
-            <h2>Créer une nouvelle tâche</h2>
+            <h2 id="taskModalTitle">Créer une nouvelle tâche</h2>
             <button class="modal-close" id="modalCloseBtn">×</button>
         </div>
         <div class="modal-body">
@@ -79,6 +79,7 @@
                 <div class="icon-grid" id="iconGrid">
                 </div>
                 <input type="hidden" id="selectedIcon" value="fa-star">
+                <input type="hidden" id="editingTaskId" value="">
             </div>
         </div>
         <div class="modal-footer">
@@ -88,6 +89,9 @@
     </div>
 
     <div class="modal-overlay" id="modalOverlay"></div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
 
     <div class="modal" id="authModal">
         <div class="modal-header">
