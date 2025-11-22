@@ -404,6 +404,16 @@ function cycleDayState(taskId, dateString) {
         nextState = 'in-progress';
     } else if (currentState === 'in-progress') {
         nextState = 'completed';
+        // Lancer les confettis quand une tâche est complétée
+        if (typeof confetti !== 'undefined') {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { x: 0.5, y: 1 },
+                angle: 90,
+                startVelocity: 45
+            });
+        }
     }
     
     setDayState(taskId, dateString, nextState);
