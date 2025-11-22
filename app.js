@@ -707,11 +707,19 @@ function initializeEventListeners() {
     if (loginGithubBtn) {
         loginGithubBtn.addEventListener('click', async () => {
             console.log('🔐 Tentative login GitHub...');
+            
+            const turnstileToken = window.turnstile?.getResponse();
+            if (!turnstileToken) {
+                showToast('Veuillez valider le captcha', 'error');
+                return;
+            }
+            
             try {
                 const { data, error } = await supabaseClient.auth.signInWithOAuth({
                     provider: 'github',
                     options: {
-                        redirectTo: 'https://tracker.squircle.computer/app'
+                        redirectTo: 'https://tracker.squircle.computer/app',
+                        captchaToken: turnstileToken
                     }
                 });
                 if (error) {
@@ -729,11 +737,18 @@ function initializeEventListeners() {
     if (loginGoogleBtn) {
         loginGoogleBtn.addEventListener('click', async () => {
             console.log('🔐 Tentative login Google...');
+            const turnstileToken = window.turnstile?.getResponse();
+            if (!turnstileToken) {
+                showToast('Veuillez valider le captcha', 'error');
+                return;
+            }
+            
             try {
                 const { data, error } = await supabaseClient.auth.signInWithOAuth({
                     provider: 'google',
                     options: {
-                        redirectTo: 'https://tracker.squircle.computer/app'
+                        redirectTo: 'https://tracker.squircle.computer/app',
+                        captchaToken: turnstileToken
                     }
                 });
                 if (error) {
@@ -756,13 +771,19 @@ function initializeEventListeners() {
                 alert('Veuillez entrer une adresse email');
                 return;
             }
+            const turnstileToken = window.turnstile?.getResponse();
+            if (!turnstileToken) {
+                showToast('Veuillez valider le captcha', 'error');
+                return;
+            }
 
             console.log('📧 Tentative envoi magic link à:', email);
             try {
                 const { data, error } = await supabaseClient.auth.signInWithOtp({ 
                     email,
                     options: {
-                        emailRedirectTo: 'https://tracker.squircle.computer/app'
+                        emailRedirectTo: 'https://tracker.squircle.computer/app',
+                        captchaToken: turnstileToken
                     }
                 });
                 if (error) {
@@ -785,7 +806,6 @@ function initializeEventListeners() {
     if (authModalCloseBtn) {
         authModalCloseBtn.addEventListener('click', () => {
             closeAuthModal();
-            // Si la modal de tâche n'est pas active, on enlève l'overlay
             const taskModal = document.getElementById('taskModal');
             if (!taskModal || !taskModal.classList.contains('active')) {
                 overlay.classList.remove('active');

@@ -100,6 +100,9 @@
             <button class="modal-close" id="authModalCloseBtn">×</button>
         </div>
         <div class="modal-body">
+            <div class="form-group">
+                <div class="cf-turnstile" id="turnstileWidget" data-sitekey="0x4AAAAAACCW3Hw8GI122wvN" data-theme="light"></div>
+            </div>
             <div class="form-group oauth-buttons">
                 <button class="btn btn-primary" id="loginGithubBtn">
                     <i class="fab fa-github"></i>Continuer avec GitHub
@@ -123,6 +126,7 @@
         </div>
     </div>
 
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
     <script>
