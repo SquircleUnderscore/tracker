@@ -768,7 +768,7 @@ function initializeEventListeners() {
             const emailInput = document.getElementById('loginEmailInput');
             const email = emailInput.value.trim();
             if (!email) {
-                alert('Veuillez entrer une adresse email');
+                showToast('Veuillez entrer une adresse email', 'error');
                 return;
             }
             const turnstileToken = window.turnstile?.getResponse();
@@ -776,6 +776,9 @@ function initializeEventListeners() {
                 showToast('Veuillez valider le captcha', 'error');
                 return;
             }
+            loginEmailBtn.disabled = true;
+            loginEmailBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            showToast('Envoi du lien de connexion...', 'info');
 
             console.log('📧 Tentative envoi magic link à:', email);
             try {
@@ -788,17 +791,23 @@ function initializeEventListeners() {
                 });
                 if (error) {
                     console.error('❌ Erreur envoi lien magique:', error);
-                    alert('Erreur: ' + error.message);
+                    showToast('Erreur: ' + error.message, 'error');
+                    loginEmailBtn.disabled = false;
+                    loginEmailBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
                 } else {
                     console.log('✅ Lien magique envoyé');
-                    alert('✉️ Email envoyé ! Vérifie ta boîte mail.');
+                    showToast('✉️ Email envoyé ! Vérifie ta boîte mail.', 'success');
                     emailInput.value = '';
                     closeAuthModal();
                     overlay.classList.remove('active');
+                    loginEmailBtn.disabled = false;
+                    loginEmailBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
                 }
             } catch (e) {
                 console.error('❌ Exception envoi lien magique:', e);
-                alert('Erreur réseau. Réessaie.');
+                showToast('Erreur réseau. Réessaie.', 'error');
+                loginEmailBtn.disabled = false;
+                loginEmailBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
             }
         });
     }
