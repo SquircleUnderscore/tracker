@@ -28,8 +28,8 @@ body {
     flex-wrap: wrap;
     padding: 40px;
     border-radius: 12px;
-    margin: 60px auto;
-    min-height: 80vh; 
+    margin: 60px auto 20px auto;
+    min-height: 70vh; 
     animation: fadeSlideIn 1s ease-out both;
 }
 
@@ -90,10 +90,59 @@ body {
     }
 }
 
+/* Features Section */
+.features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    padding: 20px 40px 40px 40px;
+    margin-bottom: 40px;
+}
+
+.feature-card {
+    background-color: #FFFBF5;
+    padding: 30px;
+    border-radius: 12px;
+    text-align: left;
+    border: none;
+    transition: background-color 0.3s ease;
+}
 
 
+.feature-card:hover {
+    background-color: #F0E8E4;
+}
 
 
+.feature-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+.feature-card h3 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #575279;
+    margin-bottom: 10px;
+}
+
+.feature-card p {
+    font-size: 1rem;
+    color: #666;
+    line-height: 1.6;
+}
+
+.feature-card a {
+    color: #56949f;
+    text-decoration: none;
+    font-weight: 500;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s ease;
+}
+
+.feature-card a:hover {
+    border-bottom: 1px solid #56949f;
+}
 
 /* Header */
 .header {
@@ -107,12 +156,28 @@ body {
 .app-title {
     font-size: 2.5rem;
     font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.week-navigation {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
     margin-bottom: 10px;
+}
+
+.btn-week-nav {
+    min-width: 40px;
+    padding: 8px 12px;
+    font-size: 1rem;
 }
 
 .week-label {
     font-size: 1rem;
     color: #666;
+    min-width: 250px;
+    text-align: center;
 }
 
 .auth-section {
@@ -157,6 +222,7 @@ body {
     outline: none; 
     border: 2px solid #56949f00;
     white-space: nowrap;
+    transition: background-color 0.3s ease;
 }
 
 .btn:hover {
@@ -559,5 +625,24 @@ body {
     .hero-image img {
         max-width: 100%;
         height: auto;
+    }
+
+    .features {
+        grid-template-columns: 1fr;
+        padding: 20px;
+        gap: 20px;
+    }
+
+    .feature-card {
+        padding: 20px;
+    }
+
+    .week-navigation {
+        flex-wrap: wrap;
+    }
+
+    .week-label {
+        min-width: auto;
+        width: 100%;
     }
 }

@@ -11,7 +11,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Habits">
     <link rel="manifest" href="/manifest.json">
-    
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,7 +21,15 @@
     <div class="container">
         <header class="header">
             <h1 class="app-title">Habit Tracker</h1>
-            <p class="week-label" id="weekLabel">Semaine du  au </p>
+            <div class="week-navigation">
+                <button class="btn btn-week-nav" id="prevWeekBtn">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <p class="week-label" id="weekLabel">Semaine du  au </p>
+                <button class="btn btn-week-nav" id="nextWeekBtn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
         </header>
 
         <main class="main-content">
@@ -116,35 +123,23 @@
         const SUPABASE_URL = 'https://qvixehlraqjhegazqrsu.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2aXhlaGxyYXFqaGVnYXpxcnN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3NDYxMjksImV4cCI6MjA3OTMyMjEyOX0.IBgf1CCDy0NrjKmDRwDPRIOrOG8PNP440FXJZLswrYQ';
 
-        if (typeof supabase === 'undefined') {
-            console.error('❌ Supabase library not loaded!');
-            console.warn('⚠️ Mode local uniquement - pas de synchronisation cloud');
-        } else {
-            console.log('✅ Supabase library loaded');
+        if (typeof supabase !== 'undefined') {
             window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            console.log('✅ Supabase client created');
         }
 
-        // Enregistrement du Service Worker pour PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
                     .then((registration) => {
-                        console.log('✅ Service Worker enregistré:', registration.scope);
-                        
-                        // Vérifier les mises à jour
                         registration.addEventListener('updatefound', () => {
                             const newWorker = registration.installing;
                             newWorker.addEventListener('statechange', () => {
                                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    console.log('🔄 Nouvelle version disponible');
                                 }
                             });
                         });
                     })
-                    .catch((error) => {
-                        console.error('❌ Erreur enregistrement Service Worker:', error);
-                    });
+                    .catch(() => {});
             });
         }
     </script>

@@ -1,10 +1,10 @@
 {
   "name": "Habit Tracker",
   "short_name": "Habits",
-  "description": "Suivez vos habitudes quotidiennes facilement",
+  "description": "Suivez vos habitudes facilement!",
   "start_url": "/app",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "background_color": "#FAF4ED",
   "theme_color": "#4CAF50",
   "orientation": "portrait-primary",
   "icons": [

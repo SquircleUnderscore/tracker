@@ -27,6 +27,7 @@ let appState = {
 let currentUser = null;
 let cloudSaveTimeout = null;
 let cloudSaveInProgress = false;
+let currentWeekOffset = 0; // 0 = semaine actuelle, -1 = semaine dernière, +1 = semaine prochaine
 
 // ========================================
 // UTILITY FUNCTIONS
@@ -36,7 +37,12 @@ function getWeekStart() {
     const now = new Date();
     const day = now.getDay(); 
     const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-    return new Date(now.getFullYear(), now.getMonth(), diff);
+    const weekStart = new Date(now.getFullYear(), now.getMonth(), diff);
+    
+    // Ajouter l'offset de semaines
+    weekStart.setDate(weekStart.getDate() + (currentWeekOffset * 7));
+    
+    return weekStart;
 }
 
 function formatDate(date) {
@@ -85,6 +91,16 @@ function getWeekLabel() {
 
 function generateId() {
     return Date.now().toString(36) + Math.random().toString(36).substring(2);
+}
+
+function navigateWeek(offset) {
+    currentWeekOffset += offset;
+    render();
+}
+
+function goToCurrentWeek() {
+    currentWeekOffset = 0;
+    render();
 }
 
 // ========================================
@@ -486,6 +502,10 @@ function initializeEventListeners() {
     document.getElementById('modalCreateBtn').addEventListener('click', createTask);
     document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
     document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+    
+    // Navigation de semaines
+    document.getElementById('prevWeekBtn').addEventListener('click', () => navigateWeek(-1));
+    document.getElementById('nextWeekBtn').addEventListener('click', () => navigateWeek(1));
 
     const overlay = document.getElementById('modalOverlay');
     overlay.addEventListener('click', () => {
