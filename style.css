@@ -527,8 +527,7 @@ body {
 /* Turnstile Captcha */
 .cf-turnstile {
     display: flex;
-    justify-content: center;
-    margin: 0 auto;
+    justify-content: flex-end;
 }
 
 .oauth-buttons {
