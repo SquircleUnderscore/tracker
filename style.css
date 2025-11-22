@@ -526,7 +526,7 @@ body {
 
 .cf-turnstile {
     display: flex;
-    justify-content: center;
+    justify-content: flex-end;
     align-items: center;
     transform: scale(0.4);
     transform-origin: center center;
