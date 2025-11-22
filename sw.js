@@ -11,17 +11,13 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        return cache.addAll(urlsToCache.map(url => {
-          return fetch(url).then(response => {
-            if (!response.ok) {
-              throw new Error(`Erreur ${response.status} pour ${url}`);
-            }
-            return cache.put(url, response);
-          }).catch(err => {});
-        }));
+        return cache.addAll(urlsToCache);
       })
       .then(() => {
         return self.skipWaiting();
+      })
+      .catch((err) => {
+        console.error('Erreur installation cache:', err);
       })
   );
 });
