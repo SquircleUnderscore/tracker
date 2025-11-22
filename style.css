@@ -526,7 +526,10 @@ body {
 
 .cf-turnstile {
     display: flex;
-    justify-content: flex-start;
+    justify-content: center;
+    align-items: center;
+    transform: scale(0.77);
+    transform-origin: center center;
 }
 
 .oauth-buttons {
