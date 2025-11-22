@@ -871,6 +871,13 @@ function init() {
                 console.log('🧹 Nettoyage hash URL');
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
+            if (event === 'SIGNED_OUT') {
+                console.log('👋 Déconnexion détectée');
+                currentUser = null;
+                updateAuthUI();
+                render();
+                return;
+            }
             if (currentUser) {
                 try {
                     const cloudState2 = await loadFromCloud();
