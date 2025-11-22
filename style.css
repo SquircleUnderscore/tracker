@@ -524,10 +524,9 @@ body {
     margin-bottom: 20px;
 }
 
-/* Turnstile Captcha */
 .cf-turnstile {
     display: flex;
-    justify-content: flex-end;
+    justify-content: flex-start;
 }
 
 .oauth-buttons {
