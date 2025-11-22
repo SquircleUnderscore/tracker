@@ -27,7 +27,7 @@ let appState = {
 let currentUser = null;
 let cloudSaveTimeout = null;
 let cloudSaveInProgress = false;
-let currentWeekOffset = 0; // 0 = semaine actuelle, -1 = semaine dernière, +1 = semaine prochaine
+let currentWeekOffset = 0;
 
 // ========================================
 // UTILITY FUNCTIONS
@@ -38,10 +38,7 @@ function getWeekStart() {
     const day = now.getDay(); 
     const diff = now.getDate() - day + (day === 0 ? -6 : 1);
     const weekStart = new Date(now.getFullYear(), now.getMonth(), diff);
-    
-    // Ajouter l'offset de semaines
     weekStart.setDate(weekStart.getDate() + (currentWeekOffset * 7));
-    
     return weekStart;
 }
 
@@ -277,7 +274,6 @@ function openModal(taskId = null) {
     const editingTaskIdInput = document.getElementById('editingTaskId');
     
     if (taskId) {
-        // Mode édition
         const task = appState.tasks.find(t => t.id === taskId);
         if (task) {
             modalTitle.textContent = 'Modifier la tâche';
@@ -287,7 +283,6 @@ function openModal(taskId = null) {
             updateIconSelection(task.icon);
         }
     } else {
-        // Mode création
         modalTitle.textContent = 'Créer une nouvelle tâche';
         modalBtn.textContent = 'Créer';
         taskNameInput.value = '';
@@ -308,8 +303,6 @@ function closeModal() {
     document.getElementById('selectedIcon').value = 'fa-star';
     document.getElementById('editingTaskId').value = '';
     updateIconSelection('fa-star');
-
-    // Si la modal d'auth n'est pas active, on peut masquer l'overlay
     const authModal = document.getElementById('authModal');
     if (!authModal || !authModal.classList.contains('active')) {
         overlay.classList.remove('active');
@@ -338,7 +331,6 @@ function createTask() {
     }
     
     if (editingTaskId) {
-        // Mode édition
         const task = appState.tasks.find(t => t.id === editingTaskId);
         if (task) {
             task.name = taskName;
@@ -349,7 +341,6 @@ function createTask() {
             showToast('Tâche modifiée avec succès', 'success');
         }
     } else {
-        // Mode création
         const taskId = generateId();
         const task = {
             id: taskId,
@@ -404,7 +395,6 @@ function cycleDayState(taskId, dateString) {
         nextState = 'in-progress';
     } else if (currentState === 'in-progress') {
         nextState = 'completed';
-        // Lancer les confettis quand une tâche est complétée
         if (typeof confetti !== 'undefined') {
             confetti({
                 particleCount: 100,
@@ -523,8 +513,6 @@ function renderTaskRow(task) {
     
     taskRow.appendChild(taskNameCell);
     taskRow.appendChild(taskDaysGrid);
-    
-    // Drag & Drop event listeners
     taskRow.addEventListener('dragstart', handleDragStart);
     taskRow.addEventListener('dragend', handleDragEnd);
     taskRow.addEventListener('dragover', handleDragOver);
@@ -657,8 +645,6 @@ function initializeEventListeners() {
     document.getElementById('modalCreateBtn').addEventListener('click', createTask);
     document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
     document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
-    
-    // Navigation de semaines
     document.getElementById('prevWeekBtn').addEventListener('click', () => navigateWeek(-1));
     document.getElementById('nextWeekBtn').addEventListener('click', () => navigateWeek(1));
 

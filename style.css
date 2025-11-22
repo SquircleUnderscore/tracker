@@ -96,7 +96,6 @@ body {
     }
 }
 
-/* Features Section */
 .features {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -150,7 +149,6 @@ body {
     border-bottom: 1px solid #56949f;
 }
 
-/* Header */
 .header {
     text-align: center;
     margin-bottom: 30px;
@@ -212,14 +210,12 @@ body {
     color: #575279;
 }
 
-/* Main Content */
 .main-content {
     background-color: #fffaf3;
     padding: 20px;
     border-radius: 8px;
 }
 
-/* Controls */
 .controls {
     display: flex;
     gap: 10px;
@@ -228,7 +224,6 @@ body {
     align-items: center;
 }
 
-/* Buttons */
 .btn {
     padding: 10px 20px;
     background-color: #EFE9E3;
@@ -265,7 +260,6 @@ body {
 
 }
 
-/* Week Header */
 .week-header {
     display: flex;
     gap: -30px;
@@ -293,7 +287,6 @@ body {
     font-size: 0.9rem;
 }
 
-/* Tasks Container */
 .tasks-container {
     display: flex;
     flex-direction: column;
@@ -397,7 +390,6 @@ body {
     flex: 1;
 }
 
-/* Day Cells */
 .day-cell {
     width: 45px;
     height: 45px;
@@ -444,7 +436,6 @@ body {
     border: 2px solid #cecacd;
 }
 
-/* Empty State */
 .empty-state {
     text-align: center;
     padding: 40px 20px;
@@ -456,7 +447,6 @@ body {
     display: none;
 }
 
-/* Modal */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -530,7 +520,6 @@ body {
     padding-top: 10px;
 }
 
-/* Form */
 .form-group {
     margin-bottom: 20px;
 }
@@ -611,7 +600,6 @@ body {
     border: 2px solid #56949f;
 }
 
-/* Icon Grid */
 .icon-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -641,7 +629,6 @@ body {
 
 }
 
-/* Toast Notifications */
 .toast-container {
     position: fixed;
     bottom: 20px;
@@ -724,7 +711,6 @@ body {
     }
 }
 
-/* Responsive */
 @media (max-width: 768px) {
     .container {
         padding: 0;
