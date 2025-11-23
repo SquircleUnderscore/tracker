@@ -50,6 +50,7 @@ const translations = {
         // Account Modal
         accountManagement: 'Gestion de compte',
         email: 'Email',
+        lastLogin: 'Dernière connexion',
         accountNote: 'Vous pouvez exporter vos données ou supprimer définitivement votre compte.',
         exportData: 'Exporter mes données',
         exportDataHelp: 'Télécharge toutes vos données au format JSON (tâches, historique, dates).',
@@ -133,6 +134,7 @@ const translations = {
         // Account Modal
         accountManagement: 'Account management',
         email: 'Email',
+        lastLogin: 'Last login',
         accountNote: 'You can export your data or permanently delete your account.',
         exportData: 'Export my data',
         exportDataHelp: 'Download all your data in JSON format (tasks, history, dates).',
@@ -293,17 +295,12 @@ function updateStaticTexts() {
     }
     
     // Modal account - textes statiques
-    const accountInfoEmail = document.querySelector('#accountModal .account-info strong');
-    if (accountInfoEmail) accountInfoEmail.textContent = t('email') + ' :';
+    const accountInfoLabels = document.querySelectorAll('#accountModal .account-info strong');
+    if (accountInfoLabels.length >= 1) accountInfoLabels[0].textContent = t('email') + ' :';
+    if (accountInfoLabels.length >= 2) accountInfoLabels[1].textContent = t('lastLogin') + ' :';
     
     const accountNote = document.querySelector('#accountModal .account-note');
     if (accountNote) accountNote.textContent = t('accountNote');
-    
-    const exportDataHelp = document.querySelector('#accountModal .form-group:not(.danger-zone) .button-help');
-    if (exportDataHelp) exportDataHelp.textContent = t('exportDataHelp');
-    
-    const deleteAccountWarning = document.querySelector('#accountModal .danger-zone .button-help.warning');
-    if (deleteAccountWarning) deleteAccountWarning.textContent = t('deleteAccountWarning');
     
     // Modal account
     const accountModalTitle = document.querySelector('#accountModal .modal-header h2');

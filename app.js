@@ -668,16 +668,21 @@ async function deleteUserAccount() {
     try {
         // Supprimer les données cloud
         if (window.supabaseClient) {
-            const { error: deleteError } = await supabaseClient
+            console.log('🗑️ Suppression des données pour user_id:', currentUser.id);
+            
+            const { data, error: deleteError } = await supabaseClient
                 .from('habit_states')
                 .delete()
-                .eq('user_id', currentUser.id);
+                .eq('user_id', currentUser.id)
+                .select();
 
             if (deleteError) {
-                console.error('Erreur suppression données:', deleteError);
-                showToast(t('errorGeneric'), 'error');
+                console.error('❌ Erreur suppression données:', deleteError);
+                showToast(t('errorGeneric') + ': ' + deleteError.message, 'error');
                 return;
             }
+            
+            console.log('✅ Données supprimées:', data);
         }
 
         // Supprimer les données locales
@@ -715,10 +720,30 @@ function openAccountModal() {
     const modal = document.getElementById('accountModal');
     const overlay = document.getElementById('modalOverlay');
     const emailDisplay = document.getElementById('accountEmailDisplay');
+    const lastLoginDisplay = document.getElementById('accountLastLogin');
     if (!modal || !overlay) return;
     
-    if (currentUser && emailDisplay) {
-        emailDisplay.textContent = currentUser.email;
+    if (currentUser) {
+        if (emailDisplay) {
+            emailDisplay.textContent = currentUser.email;
+        }
+        if (lastLoginDisplay) {
+            // Format last sign in time
+            const lastSignIn = currentUser.last_sign_in_at || currentUser.created_at;
+            if (lastSignIn) {
+                const date = new Date(lastSignIn);
+                const options = { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric', 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                };
+                lastLoginDisplay.textContent = date.toLocaleString(currentLanguage === 'fr' ? 'fr-FR' : 'en-US', options);
+            } else {
+                lastLoginDisplay.textContent = '-';
+            }
+        }
     }
     
     modal.classList.add('active');
@@ -801,6 +826,9 @@ function initializeEventListeners() {
         logoutBtn.addEventListener('click', async () => {
             try {
                 await supabaseClient.auth.signOut();
+                closeAccountModal();
+                const overlay = document.getElementById('modalOverlay');
+                if (overlay) overlay.classList.remove('active');
             } catch (e) {
                 console.error('Erreur logout:', e);
             }

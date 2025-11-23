@@ -112,27 +112,18 @@
         <div class="modal-body">
             <div class="account-info">
                 <p><strong>Email :</strong> <span id="accountEmailDisplay"></span></p>
-                <p class="account-note">Vous pouvez exporter vos données ou supprimer définitivement votre compte.</p>
+                <p><strong>Dernière connexion :</strong> <span id="accountLastLogin"></span></p>
             </div>
             
-            <div class="form-group">
-                <button class="btn btn-primary" id="exportDataBtn">
+            <div class="form-group" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                <button class="btn btn-primary" id="exportDataBtn" style="flex: 1; min-width: 150px;">
                     <i class="fas fa-download"></i> Exporter mes données
                 </button>
-                <p class="button-help">Télécharge toutes vos données au format JSON (tâches, historique, dates).</p>
-            </div>
-
-            <div class="form-group danger-zone">
-                <h3>Zone dangereuse</h3>
-                <button class="btn btn-danger" id="deleteAccountBtn">
+                <button class="btn btn-danger" id="deleteAccountBtn" style="flex: 1; min-width: 150px;">
                     <i class="fas fa-trash-alt"></i> Supprimer mon compte
                 </button>
-                <p class="button-help warning">⚠️ Cette action est irréversible. Toutes vos données seront définitivement supprimées.</p>
-            </div>
-
-            <div class="form-group" style="border-top: 2px solid #cecacd; padding-top: 20px; margin-top: 20px;">
-                <button class="btn" id="logoutBtn">
-                    <i class="fas fa-sign-out-alt"></i> Se déconnecter
+                <button class="btn" id="logoutBtn" title="Se déconnecter" style="min-width: 44px; padding: 10px 15px;">
+                    <i class="fas fa-sign-out-alt"></i>
                 </button>
             </div>
         </div>
