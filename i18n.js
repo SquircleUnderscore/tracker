@@ -52,7 +52,7 @@ const translations = {
         email: 'Email',
         lastLogin: 'Dernière connexion',
         accountNote: 'Vous pouvez exporter vos données ou supprimer définitivement votre compte.',
-        exportData: 'Exporter mes données',
+        exportData: 'Export my data',
         exportDataHelp: 'Télécharge toutes vos données au format JSON (tâches, historique, dates).',
         dangerZone: 'Zone dangereuse',
         deleteAccount: 'Supprimer mon compte',
