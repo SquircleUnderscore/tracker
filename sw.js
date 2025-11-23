@@ -44,6 +44,16 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   const url = new URL(request.url);
+  
+  // Ne pas mettre en cache les appels API Supabase/externes
+  if (url.hostname.includes('supabase') || 
+      url.hostname.includes('cloudflare') ||
+      url.hostname.includes('cdnjs') ||
+      url.hostname.includes('fonts.g') ||
+      url.hostname.includes('jsdelivr')) {
+    return;
+  }
+  
   if (!url.origin.includes(self.location.origin) && 
       !url.pathname.startsWith('/app')) {
     return;

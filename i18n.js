@@ -362,11 +362,13 @@ function updateStaticTexts() {
 // Initialisation au chargement
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
+        // Définir la langue HTML dès le chargement
         document.documentElement.lang = currentLanguage;
         updateStaticTexts();
         updateLanguageSelector();
     });
 } else {
+    // Définir la langue HTML immédiatement si le DOM est déjà chargé
     document.documentElement.lang = currentLanguage;
     updateStaticTexts();
     updateLanguageSelector();

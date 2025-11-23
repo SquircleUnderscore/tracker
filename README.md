@@ -39,16 +39,13 @@ Create a Supabase project and run this SQL to create the table:
 CREATE TABLE habit_states (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  task_id TEXT NOT NULL,
-  date DATE NOT NULL,
-  state TEXT NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  data JSONB NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Indexes for better performance
+-- Index for better performance
 CREATE INDEX idx_habit_states_user_id ON habit_states(user_id);
-CREATE INDEX idx_habit_states_date ON habit_states(date);
 
 -- Enable Row Level Security
 ALTER TABLE habit_states ENABLE ROW LEVEL SECURITY;

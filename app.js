@@ -162,7 +162,6 @@ function saveState() {
 async function saveToCloud(state) {
     if (!window.supabaseClient || !currentUser) return;
     if (cloudSaveInProgress) {
-        console.log('⏳ Sauvegarde cloud déjà en cours, ignorée');
         return;
     }
 
@@ -181,8 +180,6 @@ async function saveToCloud(state) {
         if (error) {
             console.error('❌ Erreur sauvegarde cloud:', error);
             showToast('Erreur de synchronisation cloud', 'error');
-        } else {
-            console.log('☁️✅ Sauvegarde cloud réussie');
         }
     } finally {
         cloudSaveInProgress = false;
@@ -203,7 +200,7 @@ async function loadFromCloud() {
         .maybeSingle();
 
     if (error) {
-        showToast('Erreur de chargement cloud', 'error');
+        showToast(t('errorGeneric'), 'error');
         return null;
     }
 
@@ -387,7 +384,18 @@ function setDayState(taskId, dateString, state) {
     saveState();
 }
 
+let lastClickTime = {};
+
 function cycleDayState(taskId, dateString) {
+    const clickKey = `${taskId}_${dateString}`;
+    const now = Date.now();
+    
+    // Debounce: ignorer les clics trop rapides (< 300ms)
+    if (lastClickTime[clickKey] && now - lastClickTime[clickKey] < 300) {
+        return;
+    }
+    lastClickTime[clickKey] = now;
+    
     const currentState = getDayState(taskId, dateString);
     let nextState = 'empty';
     
@@ -586,14 +594,17 @@ function render() {
     document.getElementById('weekLabel').textContent = getWeekLabel();
     
     const tasksContainer = document.getElementById('tasksContainer');
-    tasksContainer.innerHTML = '';
+    
+    // Nettoyer les anciens event listeners en clonant le conteneur
+    const newTasksContainer = tasksContainer.cloneNode(false);
+    tasksContainer.parentNode.replaceChild(newTasksContainer, tasksContainer);
     
     if (appState.tasks.length === 0) {
         document.getElementById('emptyState').classList.remove('hidden');
     } else {
         document.getElementById('emptyState').classList.add('hidden');
         appState.tasks.forEach(task => {
-            tasksContainer.appendChild(renderTaskRow(task));
+            newTasksContainer.appendChild(renderTaskRow(task));
         });
     }
 }
@@ -610,11 +621,9 @@ function updateAuthUI() {
     if (!loginBtn || !logoutBtn) return;
 
     if (currentUser) {
-        console.log('🟢 UI: Connecté -', currentUser.email);
         loginBtn.style.display = 'none';
         if (accountMenuBtn) accountMenuBtn.style.display = 'inline-block';
     } else {
-        console.log('🔴 UI: Déconnecté');
         loginBtn.style.display = 'inline-block';
         if (accountMenuBtn) accountMenuBtn.style.display = 'none';
     }
@@ -668,8 +677,6 @@ async function deleteUserAccount() {
 
     try {
         if (window.supabaseClient) {
-            console.log('🗑️ Suppression des données pour user_id:', currentUser.id);
-            
             const { data, error: deleteError } = await supabaseClient
                 .from('habit_states')
                 .delete()
@@ -681,8 +688,6 @@ async function deleteUserAccount() {
                 showToast(t('errorGeneric') + ': ' + deleteError.message, 'error');
                 return;
             }
-            
-            console.log('✅ Données supprimées:', data);
         }
         appState = { tasks: [], taskStates: {}, lastModified: new Date().toISOString() };
         localStorage.removeItem(STORAGE_KEY);
@@ -764,6 +769,14 @@ function initializeEventListeners() {
     document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
     document.getElementById('prevWeekBtn').addEventListener('click', () => navigateWeek(-1));
     document.getElementById('nextWeekBtn').addEventListener('click', () => navigateWeek(1));
+
+    // Prévention du drag & drop par défaut sur le document
+    document.addEventListener('dragover', (e) => {
+        e.preventDefault();
+    });
+    document.addEventListener('drop', (e) => {
+        e.preventDefault();
+    });
 
     const statsBtn = document.getElementById('statsBtn');
     if (statsBtn) {
@@ -865,8 +878,6 @@ function initializeEventListeners() {
 
     if (loginGithubBtn) {
         loginGithubBtn.addEventListener('click', async () => {
-            console.log('🔐 Tentative login GitHub...');
-            
             const turnstileToken = window.turnstile?.getResponse();
             if (!turnstileToken) {
                 showToast(t('validateCaptcha'), 'error');
@@ -884,8 +895,6 @@ function initializeEventListeners() {
                 if (error) {
                     console.error('❌ Erreur login GitHub:', error);
                     alert(t('errorGeneric') + ': ' + error.message);
-                } else {
-                    console.log('✅ Redirection GitHub initiée');
                 }
             } catch (e) {
                 console.error('❌ Exception login GitHub:', e);
@@ -895,7 +904,6 @@ function initializeEventListeners() {
 
     if (loginGoogleBtn) {
         loginGoogleBtn.addEventListener('click', async () => {
-            console.log('🔐 Tentative login Google...');
             const turnstileToken = window.turnstile?.getResponse();
             if (!turnstileToken) {
                 showToast(t('validateCaptcha'), 'error');
@@ -913,8 +921,6 @@ function initializeEventListeners() {
                 if (error) {
                     console.error('❌ Erreur login Google:', error);
                     alert(t('errorGeneric') + ': ' + error.message);
-                } else {
-                    console.log('✅ Redirection Google initiée');
                 }
             } catch (e) {
                 console.error('❌ Exception login Google:', e);
@@ -930,6 +936,12 @@ function initializeEventListeners() {
                 showToast(t('enterEmail'), 'error');
                 return;
             }
+            // Validation email basique
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showToast(t('errorGeneric'), 'error');
+                return;
+            }
             const turnstileToken = window.turnstile?.getResponse();
             if (!turnstileToken) {
                 showToast(t('validateCaptcha'), 'error');
@@ -939,7 +951,6 @@ function initializeEventListeners() {
             loginEmailBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             showToast(t('sendingLink'), 'info');
 
-            console.log('📧 Tentative envoi magic link à:', email);
             try {
                 const { data, error } = await supabaseClient.auth.signInWithOtp({ 
                     email,
@@ -954,7 +965,6 @@ function initializeEventListeners() {
                     loginEmailBtn.disabled = false;
                     loginEmailBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
                 } else {
-                    console.log('✅ Lien magique envoyé');
                     showToast(t('emailSent'), 'success');
                     emailInput.value = '';
                     closeAuthModal();
@@ -1064,10 +1074,24 @@ function generateSummaryStats() {
     let currentStreak = 0;
     let streakActive = true;
     
+    // Pour chaque tâche, trouver sa première date réelle (soit createdAt, soit le premier état)
     appState.tasks.forEach(task => {
+        let firstRealDate = task.createdAt;
+        
+        // Vérifier si des états existent avant createdAt
+        if (appState.taskStates[task.id]) {
+            const statesDates = Object.keys(appState.taskStates[task.id]);
+            if (statesDates.length > 0) {
+                const earliestState = statesDates.sort()[0];
+                if (!firstRealDate || earliestState < firstRealDate) {
+                    firstRealDate = earliestState;
+                }
+            }
+        }
+        
         last30Days.forEach(date => {
             // Ne compter que les jours où la tâche existait déjà
-            if (!task.createdAt || date >= task.createdAt) {
+            if (!firstRealDate || date >= firstRealDate) {
                 const state = appState.taskStates[task.id]?.[date];
                 totalPossible++;
                 if (state === 'completed') {
@@ -1207,19 +1231,14 @@ function generateProgressChart() {
 // ========================================
 
 function init() {
-    console.log('🚀 Init démarré');
-    
     loadState();
 
     initializeEventListeners();
 
     if (!window.supabaseClient) {
-        console.log('⚠️ Supabase client non trouvé');
         render();
         return;
     }
-
-    console.log('✅ Supabase client OK');
 
     supabaseClient.auth.getUser().then(async ({ data, error }) => {
         if (error) {
@@ -1227,7 +1246,6 @@ function init() {
         }
 
         currentUser = data?.user || null;
-        console.log('👤 User actuel:', currentUser ? currentUser.email : 'non connecté');
         updateAuthUI();
 
         if (currentUser) {
@@ -1236,11 +1254,9 @@ function init() {
                 if (cloudState) {
                     const localState = { ...appState };
                     appState = mergeStates(localState, cloudState);
-                    console.log('✅ État initial synchronisé');
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
                 } else {
                     if (appState.tasks.length > 0) {
-                        console.log('⬆️ Upload des données locales vers le cloud');
                         await saveToCloud(appState);
                     }
                 }
@@ -1250,15 +1266,12 @@ function init() {
         }
 
         supabaseClient.auth.onAuthStateChange(async (event, session) => {
-            console.log('🔄 Auth state change:', event, session?.user?.email || 'null');
             currentUser = session?.user || null;
             updateAuthUI();
             if (window.location.hash && window.location.hash.includes('access_token')) {
-                console.log('🧹 Nettoyage hash URL');
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
             if (event === 'SIGNED_OUT') {
-                console.log('👋 Déconnexion détectée');
                 currentUser = null;
                 updateAuthUI();
                 render();
@@ -1270,13 +1283,11 @@ function init() {
                     if (cloudState2) {
                         const localState = { ...appState };
                         appState = mergeStates(localState, cloudState2);
-                        console.log('✅ État synchronisé après login');
                         localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
                         render();
                         return;
                     } else {
                         if (appState.tasks.length > 0) {
-                            console.log('⬆️ Upload des données locales vers le cloud');
                             await saveToCloud(appState);
                         }
                     }
@@ -1284,7 +1295,6 @@ function init() {
                     console.error('❌ Erreur chargement état cloud après changement auth:', e);
                 }
             } else {
-                console.log('💾 Déconnecté, mode local uniquement');
                 render();
             }
         });
