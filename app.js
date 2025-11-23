@@ -751,6 +751,7 @@ function initializeEventListeners() {
     overlay.addEventListener('click', () => {
         closeModal();
         closeAuthModal();
+        closeAccountModal();
         overlay.classList.remove('active');
     });
 
@@ -761,6 +762,13 @@ function initializeEventListeners() {
     const authModal = document.getElementById('authModal');
     if (authModal) {
         authModal.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
+
+    const accountModal = document.getElementById('accountModal');
+    if (accountModal) {
+        accountModal.addEventListener('click', (e) => {
             e.stopPropagation();
         });
     }
