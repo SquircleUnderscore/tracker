@@ -233,7 +233,7 @@ function updateStaticTexts() {
     if (createTaskBtn) createTaskBtn.innerHTML = t('createTask');
     
     const loginBtn = document.getElementById('loginBtn');
-    if (loginBtn) loginBtn.textContent = t('login');
+    if (loginBtn) loginBtn.innerHTML = `<i class="fas fa-sign-in-alt"></i>`;
     
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) logoutBtn.innerHTML = `<i class="fas fa-sign-out-alt"></i>`;

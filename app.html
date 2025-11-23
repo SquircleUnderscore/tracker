@@ -38,8 +38,8 @@
             <div class="controls">
                 <button class="btn btn-primary" id="createTaskBtn">+ Créer une tâche</button>
                 <div id="authSection" class="export-import-controls auth-section">
-                    <button class="btn" id="loginBtn">Se connecter</button>
-                    <button class="btn" id="accountMenuBtn" style="display:none;" title="Mon compte"><i class="fas fa-user-cog"></i></button>
+                    <button class="btn login-icon-btn" id="loginBtn" title="Se connecter">Se connecter</button>
+                    <button class="btn account-menu-btn" id="accountMenuBtn" title="Mon compte"><i class="fas fa-user-cog"></i></button>
                 </div>
             </div>
 
@@ -100,7 +100,7 @@
         </div>
         <div class="modal-body">
             <div class="account-info">
-                <p><strong>Email :</strong> <span id="accountEmailDisplay"></span></p>
+                <p style="margin-bottom: 8px;"><strong>Email :</strong> <span id="accountEmailDisplay"></span></p>
                 <p><strong>Dernière connexion :</strong> <span id="accountLastLogin"></span></p>
             </div>
             

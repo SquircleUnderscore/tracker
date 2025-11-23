@@ -234,7 +234,6 @@ body {
 
 /* === AUTH SECTION === */
 .auth-section {
-    margin-top: 10px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -717,10 +716,10 @@ body {
     background-color: #f2e9e1;
     padding: 15px;
     border-radius: 8px;
+    margin-bottom: 20px;
 }
 
 .account-info p {
-    margin-bottom: 8px;
     color: #575279;
 }
 
@@ -816,6 +815,12 @@ body {
 /* Account Menu Button */
 .account-menu-btn {
     display: none;
+}
+
+/* Login Icon Button */
+.login-icon-btn {
+    min-width: 44px;
+    padding: 10px 15px;
 }
 
 /* Account Modal Sections */
@@ -940,12 +945,13 @@ body {
     }
 
     .controls {
-        flex-direction: column;
+        flex-direction: row;
+        flex-wrap: wrap;
         gap: 8px;
     }
 
     .auth-section {
-        flex-direction: column;
+        flex-direction: row;
         font-size: 0.85rem;
     }
 
