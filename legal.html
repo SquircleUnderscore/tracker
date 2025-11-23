@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="legal-title">Mentions légales - Habit Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+    <style>
+        .legal-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .legal-content h1 {
+            color: #575279;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+        }
+        .legal-content h2 {
+            color: #575279;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        .legal-content p, .legal-content ul {
+            line-height: 1.8;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .legal-content ul {
+            margin-left: 20px;
+        }
+        .legal-content a {
+            color: #56949f;
+            text-decoration: none;
+        }
+        .legal-content a:hover {
+            text-decoration: underline;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #56949f;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .section {
+            background-color: #fffaf3;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .update-date {
+            color: #999;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="legal-content">
+            <a href="/" class="back-link"><i class="fas fa-arrow-left"></i> Retour à l'accueil</a>
+            
+            <h1>Mentions légales et Politique de confidentialité</h1>
+            <p class="update-date">Dernière mise à jour : 23 novembre 2025</p>
+
+            <div class="section">
+                <h2>1. Éditeur du site</h2>
+                <p>
+                    Habit Tracker est un service fourni à titre personnel.<br>
+                    Site web : <a href="https://tracker.squircle.computer">https://tracker.squircle.computer</a><br>
+                    Hébergement : Cloudflare Pages
+                </p>
+            </div>
+
+            <div class="section">
+                <h2>2. Collecte et traitement des données</h2>
+                
+                <h3>2.1 Données collectées</h3>
+                <p>Nous collectons uniquement les données suivantes :</p>
+                <ul>
+                    <li><strong>Adresse email</strong> : utilisée uniquement pour l'authentification et la connexion à votre compte</li>
+                    <li><strong>Données d'habitudes</strong> : vos tâches, icônes, et états de progression (stockées localement et dans le cloud si vous êtes connecté)</li>
+                    <li><strong>Informations d'authentification OAuth</strong> : lors de la connexion via GitHub ou Google</li>
+                </ul>
+
+                <h3>2.2 Base légale du traitement</h3>
+                <p>Le traitement de vos données repose sur :</p>
+                <ul>
+                    <li>Votre <strong>consentement</strong> lors de la création de compte</li>
+                    <li>L'<strong>exécution du contrat</strong> de service</li>
+                </ul>
+
+                <h3>2.3 Durée de conservation</h3>
+                <p>Vos données sont conservées tant que votre compte est actif. Vous pouvez les supprimer à tout moment via le menu "Mon compte".</p>
+            </div>
+
+            <div class="section">
+                <h2>3. Vos droits (RGPD)</h2>
+                <p>Conformément au Règlement Général sur la Protection des Données (RGPD), vous disposez des droits suivants :</p>
+                <ul>
+                    <li><strong>Droit d'accès</strong> : vous pouvez consulter vos données à tout moment dans l'application</li>
+                    <li><strong>Droit de rectification</strong> : vous pouvez modifier vos tâches et données directement dans l'application</li>
+                    <li><strong>Droit à l'effacement</strong> : vous pouvez supprimer votre compte et toutes vos données via "Mon compte" → "Supprimer mon compte"</li>
+                    <li><strong>Droit à la portabilité</strong> : vous pouvez exporter toutes vos données au format JSON via "Mon compte" → "Exporter mes données"</li>
+                    <li><strong>Droit d'opposition</strong> : vous pouvez vous opposer au traitement en supprimant votre compte</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2>4. Sécurité des données</h2>
+                <p>Nous mettons en œuvre des mesures de sécurité appropriées :</p>
+                <ul>
+                    <li>Connexions HTTPS chiffrées</li>
+                    <li>Authentification sécurisée via Supabase (OAuth2, Magic Links)</li>
+                    <li>Base de données sécurisée avec contrôle d'accès RLS (Row Level Security)</li>
+                    <li>Stockage local chiffré par le navigateur</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2>5. Cookies et technologies similaires</h2>
+                <p>L'application utilise :</p>
+                <ul>
+                    <li><strong>LocalStorage</strong> : pour stocker vos données localement (persistance hors ligne)</li>
+                    <li><strong>Cookies d'authentification</strong> : pour maintenir votre session (Supabase Auth)</li>
+                    <li><strong>Service Worker</strong> : pour le fonctionnement hors ligne (PWA)</li>
+                </ul>
+                <p>Aucun cookie tiers de tracking ou publicité n'est utilisé.</p>
+            </div>
+
+            <div class="section">
+                <h2>6. Partage des données</h2>
+                <p>Vos données ne sont <strong>jamais vendues ni partagées</strong> avec des tiers, sauf :</p>
+                <ul>
+                    <li><strong>Supabase</strong> (hébergement base de données, certifié SOC 2 Type II)</li>
+                    <li><strong>Cloudflare</strong> (hébergement site web et protection DDoS)</li>
+                    <li><strong>Fournisseurs OAuth</strong> (GitHub, Google) uniquement pour l'authentification</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2>7. Conditions générales d'utilisation</h2>
+                
+                <h3>7.1 Objet</h3>
+                <p>Habit Tracker est une application gratuite de suivi d'habitudes. Le service est fourni "tel quel" sans garantie.</p>
+
+                <h3>7.2 Responsabilités</h3>
+                <p>L'utilisateur est responsable de :</p>
+                <ul>
+                    <li>La sauvegarde régulière de ses données (export JSON recommandé)</li>
+                    <li>La sécurité de son compte (mot de passe, email)</li>
+                    <li>L'utilisation conforme du service</li>
+                </ul>
+
+                <h3>7.3 Disponibilité</h3>
+                <p>Nous nous efforçons d'assurer une disponibilité maximale du service, mais ne pouvons garantir une disponibilité 24/7. Le mode hors ligne permet de continuer à utiliser l'application sans connexion.</p>
+
+                <h3>7.4 Modification du service</h3>
+                <p>Nous nous réservons le droit de modifier ou d'interrompre le service à tout moment, avec préavis si possible.</p>
+            </div>
+
+            <div class="section">
+                <h2>8. Contact</h2>
+                <p>Pour toute question concernant vos données personnelles ou ces mentions légales, vous pouvez nous contacter via GitHub : 
+                <a href="https://github.com/SquircleUnderscore/tracker">github.com/SquircleUnderscore/tracker</a></p>
+            </div>
+
+            <div class="section">
+                <h2>9. Modifications</h2>
+                <p>Nous nous réservons le droit de modifier cette politique de confidentialité à tout moment. Les modifications seront publiées sur cette page avec une nouvelle date de mise à jour.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

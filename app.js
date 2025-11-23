@@ -72,10 +72,7 @@ function getWeekLabel() {
     const startDate = dates[0];
     const endDate = dates[6];
     
-    const monthNames = [
-        'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
-        'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'
-    ];
+    const monthNames = t('months');
     
     const startMonth = monthNames[startDate.getMonth()];
     const endMonth = monthNames[endDate.getMonth()];
@@ -83,7 +80,7 @@ function getWeekLabel() {
     const startDay = startDate.getDate();
     const endDay = endDate.getDate();
     
-    return `Semaine du ${startDay} ${startMonth} au ${endDay} ${endMonth}`;
+    return t('weekLabel', { start: `${startDay} ${startMonth}`, end: `${endDay} ${endMonth}` });
 }
 
 function generateId() {
@@ -276,15 +273,15 @@ function openModal(taskId = null) {
     if (taskId) {
         const task = appState.tasks.find(t => t.id === taskId);
         if (task) {
-            modalTitle.textContent = 'Modifier la tâche';
-            modalBtn.textContent = 'Enregistrer';
+            modalTitle.textContent = t('editTask');
+            modalBtn.textContent = t('save');
             taskNameInput.value = task.name;
             editingTaskIdInput.value = taskId;
             updateIconSelection(task.icon);
         }
     } else {
-        modalTitle.textContent = 'Créer une nouvelle tâche';
-        modalBtn.textContent = 'Créer';
+        modalTitle.textContent = t('createNewTask');
+        modalBtn.textContent = t('create');
         taskNameInput.value = '';
         editingTaskIdInput.value = '';
         updateIconSelection('fa-star');
@@ -304,7 +301,9 @@ function closeModal() {
     document.getElementById('editingTaskId').value = '';
     updateIconSelection('fa-star');
     const authModal = document.getElementById('authModal');
-    if (!authModal || !authModal.classList.contains('active')) {
+    const accountModal = document.getElementById('accountModal');
+    if ((!authModal || !authModal.classList.contains('active')) &&
+        (!accountModal || !accountModal.classList.contains('active'))) {
         overlay.classList.remove('active');
     }
 }
@@ -326,7 +325,7 @@ function createTask() {
     const editingTaskId = document.getElementById('editingTaskId').value;
     
     if (!taskName) {
-        showToast('Veuillez entrer un nom de tâche', 'error');
+        showToast(t('enterTaskName'), 'error');
         return;
     }
     
@@ -338,7 +337,7 @@ function createTask() {
             saveState();
             closeModal();
             render();
-            showToast('Tâche modifiée avec succès', 'success');
+            showToast(t('taskModified'), 'success');
         }
     } else {
         const taskId = generateId();
@@ -355,19 +354,19 @@ function createTask() {
         saveState();
         closeModal();
         render();
-        showToast('Tâche créée avec succès', 'success');
+        showToast(t('taskCreated'), 'success');
     }
 }
 
 function deleteTask(taskId) {
     const task = appState.tasks.find(t => t.id === taskId);
     const taskName = task ? task.name : 'cette tâche';
-    if (confirm(`Êtes-vous sûr de vouloir supprimer la tâche "${taskName}"?`)) {
+    if (confirm(t('deleteTaskConfirm', { name: taskName }))) {
         appState.tasks = appState.tasks.filter(t => t.id !== taskId);
         delete appState.taskStates[taskId];
         saveState();
         render();
-        showToast(`Tâche "${taskName}" supprimée`, 'info');
+        showToast(t('taskDeleted', { name: taskName }), 'info');
     }
 }
 
@@ -606,6 +605,7 @@ function updateAuthUI() {
     const loginBtn = document.getElementById('loginBtn');
     const logoutBtn = document.getElementById('logoutBtn');
     const userEmailSpan = document.getElementById('userEmail');
+    const accountMenuBtn = document.getElementById('accountMenuBtn');
 
     if (!loginBtn || !logoutBtn || !userEmailSpan) return;
 
@@ -614,11 +614,90 @@ function updateAuthUI() {
         loginBtn.style.display = 'none';
         logoutBtn.style.display = 'inline-block';
         userEmailSpan.textContent = currentUser.email || '';
+        if (accountMenuBtn) accountMenuBtn.style.display = 'inline-block';
     } else {
         console.log('🔴 UI: Déconnecté');
         loginBtn.style.display = 'inline-block';
         logoutBtn.style.display = 'none';
         userEmailSpan.textContent = '';
+        if (accountMenuBtn) accountMenuBtn.style.display = 'none';
+    }
+}
+
+// ========================================
+// RGPD - EXPORT & DELETE
+// ========================================
+
+async function exportUserData() {
+    if (!currentUser) {
+        showToast(t('mustBeConnected'), 'error');
+        return;
+    }
+
+    const dataExport = {
+        exportDate: new Date().toISOString(),
+        userId: currentUser.id,
+        email: currentUser.email,
+        tasks: appState.tasks,
+        taskStates: appState.taskStates,
+        lastModified: appState.lastModified
+    };
+
+    const dataStr = JSON.stringify(dataExport, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `habit-tracker-data-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    showToast(t('dataExported'), 'success');
+}
+
+async function deleteUserAccount() {
+    if (!currentUser) {
+        showToast(t('mustBeConnected'), 'error');
+        return;
+    }
+
+    const confirmation = prompt(t('deleteAccountConfirm', { email: currentUser.email }));
+
+    if (confirmation !== currentUser.email) {
+        showToast(t('deletionCancelled'), 'info');
+        return;
+    }
+
+    try {
+        // Supprimer les données cloud
+        if (window.supabaseClient) {
+            const { error: deleteError } = await supabaseClient
+                .from('habit_states')
+                .delete()
+                .eq('user_id', currentUser.id);
+
+            if (deleteError) {
+                console.error('Erreur suppression données:', deleteError);
+                showToast(t('errorGeneric'), 'error');
+                return;
+            }
+        }
+
+        // Supprimer les données locales
+        appState = { tasks: [], taskStates: {}, lastModified: new Date().toISOString() };
+        localStorage.removeItem(STORAGE_KEY);
+
+        // Déconnexion
+        await supabaseClient.auth.signOut();
+
+        showToast(t('accountDeleted'), 'success');
+        closeAccountModal();
+        render();
+    } catch (error) {
+        console.error('Erreur suppression compte:', error);
+        showToast(t('errorGeneric'), 'error');
     }
 }
 
@@ -632,6 +711,26 @@ function openAuthModal() {
 
 function closeAuthModal() {
     const modal = document.getElementById('authModal');
+    if (!modal) return;
+    modal.classList.remove('active');
+}
+
+function openAccountModal() {
+    const modal = document.getElementById('accountModal');
+    const overlay = document.getElementById('modalOverlay');
+    const emailDisplay = document.getElementById('accountEmailDisplay');
+    if (!modal || !overlay) return;
+    
+    if (currentUser && emailDisplay) {
+        emailDisplay.textContent = currentUser.email;
+    }
+    
+    modal.classList.add('active');
+    overlay.classList.add('active');
+}
+
+function closeAccountModal() {
+    const modal = document.getElementById('accountModal');
     if (!modal) return;
     modal.classList.remove('active');
 }
@@ -710,7 +809,7 @@ function initializeEventListeners() {
             
             const turnstileToken = window.turnstile?.getResponse();
             if (!turnstileToken) {
-                showToast('Veuillez valider le captcha', 'error');
+                showToast(t('validateCaptcha'), 'error');
                 return;
             }
             
@@ -724,7 +823,7 @@ function initializeEventListeners() {
                 });
                 if (error) {
                     console.error('❌ Erreur login GitHub:', error);
-                    alert('Erreur de connexion GitHub: ' + error.message);
+                    alert(t('errorGeneric') + ': ' + error.message);
                 } else {
                     console.log('✅ Redirection GitHub initiée');
                 }
@@ -739,7 +838,7 @@ function initializeEventListeners() {
             console.log('🔐 Tentative login Google...');
             const turnstileToken = window.turnstile?.getResponse();
             if (!turnstileToken) {
-                showToast('Veuillez valider le captcha', 'error');
+                showToast(t('validateCaptcha'), 'error');
                 return;
             }
             
@@ -753,7 +852,7 @@ function initializeEventListeners() {
                 });
                 if (error) {
                     console.error('❌ Erreur login Google:', error);
-                    alert('Erreur de connexion Google: ' + error.message);
+                    alert(t('errorGeneric') + ': ' + error.message);
                 } else {
                     console.log('✅ Redirection Google initiée');
                 }
@@ -768,17 +867,17 @@ function initializeEventListeners() {
             const emailInput = document.getElementById('loginEmailInput');
             const email = emailInput.value.trim();
             if (!email) {
-                showToast('Veuillez entrer une adresse email', 'error');
+                showToast(t('enterEmail'), 'error');
                 return;
             }
             const turnstileToken = window.turnstile?.getResponse();
             if (!turnstileToken) {
-                showToast('Veuillez valider le captcha', 'error');
+                showToast(t('validateCaptcha'), 'error');
                 return;
             }
             loginEmailBtn.disabled = true;
             loginEmailBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            showToast('Envoi du lien de connexion...', 'info');
+            showToast(t('sendingLink'), 'info');
 
             console.log('📧 Tentative envoi magic link à:', email);
             try {
@@ -791,12 +890,12 @@ function initializeEventListeners() {
                 });
                 if (error) {
                     console.error('❌ Erreur envoi lien magique:', error);
-                    showToast('Erreur: ' + error.message, 'error');
+                    showToast(t('errorGeneric') + ': ' + error.message, 'error');
                     loginEmailBtn.disabled = false;
                     loginEmailBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
                 } else {
                     console.log('✅ Lien magique envoyé');
-                    showToast('✉️ Email envoyé ! Vérifie ta boîte mail.', 'success');
+                    showToast(t('emailSent'), 'success');
                     emailInput.value = '';
                     closeAuthModal();
                     overlay.classList.remove('active');
@@ -805,7 +904,7 @@ function initializeEventListeners() {
                 }
             } catch (e) {
                 console.error('❌ Exception envoi lien magique:', e);
-                showToast('Erreur réseau. Réessaie.', 'error');
+                showToast(t('errorGeneric'), 'error');
                 loginEmailBtn.disabled = false;
                 loginEmailBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
             }
@@ -819,6 +918,45 @@ function initializeEventListeners() {
             if (!taskModal || !taskModal.classList.contains('active')) {
                 overlay.classList.remove('active');
             }
+        });
+    }
+
+    const accountMenuBtn = document.getElementById('accountMenuBtn');
+    if (accountMenuBtn) {
+        accountMenuBtn.addEventListener('click', openAccountModal);
+    }
+
+    const accountModalCloseBtn = document.getElementById('accountModalCloseBtn');
+    if (accountModalCloseBtn) {
+        accountModalCloseBtn.addEventListener('click', () => {
+            closeAccountModal();
+            const taskModal = document.getElementById('taskModal');
+            const authModal = document.getElementById('authModal');
+            if ((!taskModal || !taskModal.classList.contains('active')) &&
+                (!authModal || !authModal.classList.contains('active'))) {
+                overlay.classList.remove('active');
+            }
+        });
+    }
+
+    const exportDataBtn = document.getElementById('exportDataBtn');
+    if (exportDataBtn) {
+        exportDataBtn.addEventListener('click', exportUserData);
+    }
+
+    const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+    if (deleteAccountBtn) {
+        deleteAccountBtn.addEventListener('click', deleteUserAccount);
+    }
+
+    // Language selector
+    const languageSelector = document.getElementById('languageSelector');
+    if (languageSelector) {
+        languageSelector.value = currentLanguage;
+        
+        languageSelector.addEventListener('change', (e) => {
+            const lang = e.target.value;
+            setLanguage(lang);
         });
     }
 

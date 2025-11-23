@@ -12,9 +12,9 @@
 <div class="container">
   <div class="home-hero">
     <div class="hero-text">
-      <h1>Habit Tracker</h1>
-      <p>Suivez vos habitudes de manière épurée et intuitive, sans aucune distraction. Marquez vos accomplissements quotidiens, et synchronisez vos données automatiquement sur tous vos appareils!</p>
-      <a href="app.html" class="btn btn-primary">Ouvrir →</a>
+      <h1 data-i18n="home-title">Habit Tracker</h1>
+      <p data-i18n="home-description">Suivez vos habitudes de manière épurée et intuitive, sans aucune distraction. Marquez vos accomplissements quotidiens, et synchronisez vos données automatiquement sur tous vos appareils!</p>
+      <a href="app.html" class="btn btn-primary" data-i18n="home-open">Ouvrir →</a>
     </div>
     <div class="hero-image">
       <img src="screenshot.png" alt="Capture d'écran">
@@ -24,20 +24,97 @@
   <div class="features">
     <div class="feature-card">
       <div class="feature-icon"><i class="fas fa-cloud"></i></div>
-      <h3>Synchronisation Cloud</h3>
-      <p>Vos données sont automatiquement synchronisées sur tous vos appareils. Connectez-vous une seule fois et retrouvez vos habitudes partout.</p>
+      <h3 data-i18n="home-sync-title">Synchronisation Cloud</h3>
+      <p data-i18n="home-sync-desc">Vos données sont automatiquement synchronisées sur tous vos appareils. Connectez-vous une seule fois et retrouvez vos habitudes partout.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon"><i class="fas fa-wifi"></i></div>
-      <h3>Mode Hors Ligne</h3>
-      <p>Grâce à la <a href="https://www.cdc.gov/niosh/mining/tools/installpwa.html" target="_blank">PWA</a>, l'application peut être installée comme une app native et fonctionner hors connexion.</p>
+      <h3 data-i18n="home-offline-title">Mode Hors Ligne</h3>
+      <p data-i18n="home-offline-desc">Grâce à la <a href="https://www.cdc.gov/niosh/mining/tools/installpwa.html" target="_blank">PWA</a>, l'application peut être installée comme une app native et fonctionner hors connexion.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon"><i class="fas fa-star"></i></div>
-      <h3>Interface Simple</h3>
-      <p>Une interface épurée qui se concentre sur l'essentiel. Utilise <a href="https://rosepinetheme.com/" target="_blank">Rosé Pine</a> comme color scheme, ainsi que <a href="https://daisyui.com/" target="_blank">daisyUI</a> pour l'inspiration de l'interface.</p>
+      <h3 data-i18n="home-simple-title">Interface Simple</h3>
+      <p data-i18n="home-simple-desc">Une interface épurée qui se concentre sur l'essentiel. Utilise <a href="https://rosepinetheme.com/" target="_blank">Rosé Pine</a> comme color scheme, ainsi que <a href="https://daisyui.com/" target="_blank">daisyUI</a> pour l'inspiration de l'interface.</p>
     </div>
   </div>
+
+  <footer class="footer">
+    <a href="/legal.html" data-i18n="footer-legal">Mentions légales</a> |
+    <a href="/legal.html#confidentialite" data-i18n="footer-privacy">Politique de confidentialité</a> |
+    <a href="/legal.html#rgpd" data-i18n="footer-gdpr">RGPD</a>
+  </footer>
 </div>
+
+<!-- Language Selector -->
+<div class="language-selector-fixed">
+  <label for="languageSelector">
+    <i class="fas fa-globe"></i>
+  </label>
+  <select id="languageSelector" class="language-select">
+    <option value="fr">Français</option>
+    <option value="en">English</option>
+  </select>
+</div>
+
+<script src="i18n.js"></script>
+<script>
+  // Traductions pour la page d'accueil
+  const homeTranslations = {
+    fr: {
+      'home-title': 'Habit Tracker',
+      'home-description': 'Suivez vos habitudes de manière épurée et intuitive, sans aucune distraction. Marquez vos accomplissements quotidiens, et synchronisez vos données automatiquement sur tous vos appareils!',
+      'home-open': 'Ouvrir →',
+      'home-sync-title': 'Synchronisation Cloud',
+      'home-sync-desc': 'Vos données sont automatiquement synchronisées sur tous vos appareils. Connectez-vous une seule fois et retrouvez vos habitudes partout.',
+      'home-offline-title': 'Mode Hors Ligne',
+      'home-offline-desc': 'Grâce à la <a href="https://www.cdc.gov/niosh/mining/tools/installpwa.html" target="_blank">PWA</a>, l\'application peut être installée comme une app native et fonctionner hors connexion.',
+      'home-simple-title': 'Interface Simple',
+      'home-simple-desc': 'Une interface épurée qui se concentre sur l\'essentiel. Utilise <a href="https://rosepinetheme.com/" target="_blank">Rosé Pine</a> comme color scheme, ainsi que <a href="https://daisyui.com/" target="_blank">daisyUI</a> pour l\'inspiration de l\'interface.',
+      'footer-legal': 'Mentions légales',
+      'footer-privacy': 'Politique de confidentialité',
+      'footer-gdpr': 'Vos droits RGPD'
+    },
+    en: {
+      'home-title': 'Habit Tracker',
+      'home-description': 'Track your habits in a clean and intuitive way, without any distractions. Mark your daily accomplishments, and automatically sync your data across all your devices!',
+      'home-open': 'Open →',
+      'home-sync-title': 'Cloud Sync',
+      'home-sync-desc': 'Your data is automatically synchronized across all your devices. Log in once and access your habits everywhere.',
+      'home-offline-title': 'Offline Mode',
+      'home-offline-desc': 'Thanks to <a href="https://www.cdc.gov/niosh/mining/tools/installpwa.html" target="_blank">PWA</a>, the app can be installed like a native app and works offline.',
+      'home-simple-title': 'Simple Interface',
+      'home-simple-desc': 'A clean interface that focuses on the essentials. Uses <a href="https://rosepinetheme.com/" target="_blank">Rosé Pine</a> as color scheme, and <a href="https://daisyui.com/" target="_blank">daisyUI</a> for interface inspiration.',
+      'footer-legal': 'Legal notices',
+      'footer-privacy': 'Privacy policy',
+      'footer-gdpr': 'GDPR'
+    }
+  };
+
+  function updateHomeTranslations(lang) {
+    const elements = document.querySelectorAll('[data-i18n]');
+    elements.forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (homeTranslations[lang] && homeTranslations[lang][key]) {
+        el.innerHTML = homeTranslations[lang][key];
+      }
+    });
+  }
+
+  // Language selector
+  const languageSelector = document.getElementById('languageSelector');
+  if (languageSelector) {
+    languageSelector.value = currentLanguage;
+    
+    languageSelector.addEventListener('change', (e) => {
+      const lang = e.target.value;
+      setLanguage(lang);
+      updateHomeTranslations(lang);
+    });
+  }
+
+  // Appliquer la langue au chargement
+  updateHomeTranslations(currentLanguage);
+</script>
 </body>
 </html>
