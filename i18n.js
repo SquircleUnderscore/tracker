@@ -216,9 +216,9 @@ function setLanguage(lang) {
 
 // Mettre à jour le sélecteur de langue
 function updateLanguageSelector() {
-    const selector = document.getElementById('languageSelector');
-    if (selector) {
-        selector.value = currentLanguage;
+    const footerSelector = document.getElementById('footerLanguageSelector');
+    if (footerSelector) {
+        footerSelector.value = currentLanguage;
     }
     const accountSelector = document.getElementById('accountLanguageSelector');
     if (accountSelector) {
