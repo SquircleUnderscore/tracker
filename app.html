@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Application de suivi d'habitudes quotidiennes avec synchronisation cloud et mode hors ligne.">
+    <meta name="description" content="Track your daily habits with cloud sync and offline support. Simple, elegant habit tracker with statistics and progress visualization.">
     <title>Habit Tracker</title>
     
     <!-- PWA Configuration -->
@@ -24,11 +24,11 @@
         <header class="header">
             <h1 class="app-title">Habit Tracker</h1>
             <div class="week-navigation">
-                <button class="btn btn-week-nav" id="prevWeekBtn">
+                <button class="btn btn-week-nav" id="prevWeekBtn" aria-label="Semaine précédente">
                     <i class="fas fa-chevron-left"></i>
                 </button>
                 <p class="week-label" id="weekLabel">Semaine du  au </p>
-                <button class="btn btn-week-nav" id="nextWeekBtn">
+                <button class="btn btn-week-nav" id="nextWeekBtn" aria-label="Semaine suivante">
                     <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
@@ -38,9 +38,9 @@
             <div class="controls">
                 <button class="btn btn-primary" id="createTaskBtn">+ Créer une tâche</button>
                 <div id="authSection" class="export-import-controls auth-section">
-                    <button class="btn stats-icon-btn" id="statsBtn" title="Statistiques"><i class="fas fa-chart-bar"></i></button>
+                    <button class="btn stats-icon-btn" id="statsBtn" title="Statistiques" aria-label="Statistiques"><i class="fas fa-chart-bar"></i></button>
                     <button class="btn login-icon-btn" id="loginBtn" title="Se connecter">Se connecter</button>
-                    <button class="btn account-menu-btn" id="accountMenuBtn" title="Mon compte"><i class="fas fa-user-cog"></i></button>
+                    <button class="btn account-menu-btn" id="accountMenuBtn" title="Mon compte" aria-label="Mon compte"><i class="fas fa-user-cog"></i></button>
                 </div>
             </div>
 
@@ -69,12 +69,12 @@
     <div class="modal" id="taskModal">
         <div class="modal-header">
             <h2 id="taskModalTitle">Créer une nouvelle tâche</h2>
-            <button class="modal-close" id="modalCloseBtn">×</button>
+            <button class="modal-close" id="modalCloseBtn" aria-label="Fermer">×</button>
         </div>
         <div class="modal-body">
             <div class="form-group">
                 <label for="taskName">Nom de la tâche</label>
-                <input type="text" id="taskName" placeholder="Ex: Méditation, Lecture..." class="form-input">
+                <input type="text" id="taskName" placeholder="Ex: Méditation, Lecture..." class="form-input" maxlength="100">
             </div>
             <div class="form-group">
                 <label for="taskIcon">Icône</label>
@@ -93,7 +93,7 @@
     <div class="modal" id="accountModal">
         <div class="modal-header">
             <h2>Gestion de compte</h2>
-            <button class="modal-close" id="accountModalCloseBtn">×</button>
+            <button class="modal-close" id="accountModalCloseBtn" aria-label="Fermer">×</button>
         </div>
         <div class="modal-body">
             <div class="account-info">
@@ -131,7 +131,7 @@
         <div class="modal-header">
             <h2>Connexion</h2>
             <div class="cf-turnstile" id="turnstileWidget" data-sitekey="0x4AAAAAACCW3Hw8GI122wvN" data-theme="light"></div>
-            <button class="modal-close" id="authModalCloseBtn">×</button>
+            <button class="modal-close" id="authModalCloseBtn" aria-label="Fermer">×</button>
         </div>
         <div class="modal-body auth-modal-body">
             <div class="form-group oauth-buttons">
@@ -146,7 +146,7 @@
                 <label for="loginEmailInput">Ou par email</label>
                 <div class="email-input-wrapper">
                     <input type="email" id="loginEmailInput" class="form-input" placeholder="francisco@respondant.com">
-                    <button class="email-send-btn" id="loginEmailBtn" title="Envoyer le lien magique">
+                    <button class="email-send-btn" id="loginEmailBtn" title="Envoyer le lien magique" aria-label="Envoyer le lien magique">
                         <i class="fas fa-paper-plane"></i>
                     </button>
                 </div>
@@ -163,7 +163,7 @@
     <div class="modal stats-modal" id="statsModal">
         <div class="modal-header">
             <h2>Statistiques</h2>
-            <button class="modal-close" id="statsModalCloseBtn">×</button>
+            <button class="modal-close" id="statsModalCloseBtn" aria-label="Fermer">×</button>
         </div>
         <div class="modal-body stats-modal-body">
             <div class="stats-section">

@@ -27,6 +27,7 @@ let appState = {
 let currentUser = null;
 let cloudSaveTimeout = null;
 let cloudSaveInProgress = false;
+let pendingSaveState = null; // Queue pour sauvegardes multiples
 let currentWeekOffset = 0;
 
 // ========================================
@@ -43,6 +44,8 @@ function getWeekStart() {
 }
 
 function formatDate(date) {
+    // Utilise le timezone local de l'utilisateur
+    // Note: si l'utilisateur voyage, les dates peuvent sembler décalées
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
@@ -147,7 +150,17 @@ function loadState() {
 
 function saveState() {
     appState.lastModified = new Date().toISOString();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+    
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+    } catch (e) {
+        // Quota dépassé ou localStorage indisponible
+        if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+            showToast('Stockage local plein. Vos données sont sauvegardées dans le cloud.', 'error');
+        } else {
+            console.error('Erreur localStorage:', e);
+        }
+    }
 
     if (cloudSaveTimeout) clearTimeout(cloudSaveTimeout);
     cloudSaveTimeout = setTimeout(() => {
@@ -161,7 +174,10 @@ function saveState() {
 
 async function saveToCloud(state) {
     if (!window.supabaseClient || !currentUser) return;
+    
+    // Si sauvegarde en cours, mémoriser l'état pour sauvegarder après
     if (cloudSaveInProgress) {
+        pendingSaveState = state;
         return;
     }
 
@@ -183,6 +199,13 @@ async function saveToCloud(state) {
         }
     } finally {
         cloudSaveInProgress = false;
+        
+        // Si un état était en attente, le sauvegarder maintenant
+        if (pendingSaveState) {
+            const stateToSave = pendingSaveState;
+            pendingSaveState = null;
+            await saveToCloud(stateToSave);
+        }
     }
 }
 
@@ -242,6 +265,7 @@ function mergeStates(localState, cloudState) {
         if (!mergedTaskStates[taskId]) {
             mergedTaskStates[taskId] = localState.taskStates[taskId];
         } else {
+            // Merge au niveau des dates individuelles, pas écrasement global
             mergedTaskStates[taskId] = {
                 ...mergedTaskStates[taskId],
                 ...localState.taskStates[taskId]
@@ -324,6 +348,18 @@ function createTask() {
     
     if (!taskName) {
         showToast(t('enterTaskName'), 'error');
+        return;
+    }
+    
+    // Limite de 100 caractères pour éviter débordement UI et quota storage
+    if (taskName.length > 100) {
+        showToast(t('taskNameTooLong'), 'error');
+        return;
+    }
+    
+    // Validation de l'icône sélectionnée (whitelist)
+    if (!ICON_OPTIONS.includes(selectedIcon)) {
+        showToast(t('errorGeneric'), 'error');
         return;
     }
     
@@ -458,6 +494,8 @@ function renderTaskRow(task) {
     const dragHandle = document.createElement('div');
     dragHandle.className = 'task-drag-handle';
     dragHandle.innerHTML = '<i class="fas fa-grip-vertical"></i>';
+    dragHandle.setAttribute('aria-label', t('dragToReorder'));
+    dragHandle.setAttribute('role', 'button');
     
     const iconDiv = document.createElement('div');
     iconDiv.className = 'task-icon';
@@ -473,11 +511,13 @@ function renderTaskRow(task) {
     const editBtn = document.createElement('button');
     editBtn.className = 'task-edit-btn';
     editBtn.innerHTML = '<i class="fas fa-edit"></i>';
+    editBtn.setAttribute('aria-label', t('editTask'));
     editBtn.addEventListener('click', () => openModal(task.id));
     
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'task-delete-btn';
     deleteBtn.innerHTML = '×';
+    deleteBtn.setAttribute('aria-label', t('deleteTask'));
     deleteBtn.addEventListener('click', () => deleteTask(task.id));
     
     actionsDiv.appendChild(editBtn);
@@ -763,12 +803,19 @@ function closeAccountModal() {
 // ========================================
 
 function initializeEventListeners() {
-    document.getElementById('createTaskBtn').addEventListener('click', openModal);
-    document.getElementById('modalCreateBtn').addEventListener('click', createTask);
-    document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
-    document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
-    document.getElementById('prevWeekBtn').addEventListener('click', () => navigateWeek(-1));
-    document.getElementById('nextWeekBtn').addEventListener('click', () => navigateWeek(1));
+    const createTaskBtn = document.getElementById('createTaskBtn');
+    const modalCreateBtn = document.getElementById('modalCreateBtn');
+    const modalCancelBtn = document.getElementById('modalCancelBtn');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+    const prevWeekBtn = document.getElementById('prevWeekBtn');
+    const nextWeekBtn = document.getElementById('nextWeekBtn');
+    
+    if (createTaskBtn) createTaskBtn.addEventListener('click', openModal);
+    if (modalCreateBtn) modalCreateBtn.addEventListener('click', createTask);
+    if (modalCancelBtn) modalCancelBtn.addEventListener('click', closeModal);
+    if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeModal);
+    if (prevWeekBtn) prevWeekBtn.addEventListener('click', () => navigateWeek(-1));
+    if (nextWeekBtn) nextWeekBtn.addEventListener('click', () => navigateWeek(1));
 
     // Prévention du drag & drop par défaut sur le document
     document.addEventListener('dragover', (e) => {
@@ -800,17 +847,22 @@ function initializeEventListeners() {
     }
 
     const overlay = document.getElementById('modalOverlay');
-    overlay.addEventListener('click', () => {
-        closeModal();
-        closeAuthModal();
-        closeAccountModal();
-        closeStatsModal();
-        overlay.classList.remove('active');
-    });
+    if (overlay) {
+        overlay.addEventListener('click', () => {
+            closeModal();
+            closeAuthModal();
+            closeAccountModal();
+            closeStatsModal();
+            overlay.classList.remove('active');
+        });
+    }
 
-    document.getElementById('taskModal').addEventListener('click', (e) => {
-        e.stopPropagation();
-    });
+    const taskModal = document.getElementById('taskModal');
+    if (taskModal) {
+        taskModal.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
 
     const authModal = document.getElementById('authModal');
     if (authModal) {
@@ -833,11 +885,14 @@ function initializeEventListeners() {
         });
     }
 
-    document.getElementById('taskName').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            createTask();
-        }
-    });
+    const taskNameInput = document.getElementById('taskName');
+    if (taskNameInput) {
+        taskNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                createTask();
+            }
+        });
+    }
 
     const loginEmailInput = document.getElementById('loginEmailInput');
     if (loginEmailInput) {
@@ -894,10 +949,11 @@ function initializeEventListeners() {
                 });
                 if (error) {
                     console.error('❌ Erreur login GitHub:', error);
-                    alert(t('errorGeneric') + ': ' + error.message);
+                    showToast(t('errorGeneric') + ': ' + error.message, 'error');
                 }
             } catch (e) {
                 console.error('❌ Exception login GitHub:', e);
+                showToast(t('errorGeneric'), 'error');
             }
         });
     }
@@ -920,10 +976,11 @@ function initializeEventListeners() {
                 });
                 if (error) {
                     console.error('❌ Erreur login Google:', error);
-                    alert(t('errorGeneric') + ': ' + error.message);
+                    showToast(t('errorGeneric') + ': ' + error.message, 'error');
                 }
             } catch (e) {
                 console.error('❌ Exception login Google:', e);
+                showToast(t('errorGeneric'), 'error');
             }
         });
     }
@@ -1029,6 +1086,40 @@ function initializeEventListeners() {
             setLanguage(lang);
         });
     }
+    
+    // Navigation clavier globale
+    document.addEventListener('keydown', (e) => {
+        // Esc ferme les modaux
+        if (e.key === 'Escape') {
+            const taskModal = document.getElementById('taskModal');
+            const authModal = document.getElementById('authModal');
+            const accountModal = document.getElementById('accountModal');
+            const statsModal = document.getElementById('statsModal');
+            const overlay = document.getElementById('modalOverlay');
+            
+            if (taskModal && taskModal.classList.contains('active')) {
+                closeModal();
+            } else if (authModal && authModal.classList.contains('active')) {
+                closeAuthModal();
+                if (overlay) overlay.classList.remove('active');
+            } else if (accountModal && accountModal.classList.contains('active')) {
+                closeAccountModal();
+                if (overlay) overlay.classList.remove('active');
+            } else if (statsModal && statsModal.classList.contains('active')) {
+                closeStatsModal();
+                if (overlay) overlay.classList.remove('active');
+            }
+        }
+        
+        // Flèches gauche/droite pour naviguer entre semaines (si pas dans input)
+        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+            if (e.key === 'ArrowLeft') {
+                navigateWeek(-1);
+            } else if (e.key === 'ArrowRight') {
+                navigateWeek(1);
+            }
+        }
+    });
 
     renderIconGrid();
 }
@@ -1051,6 +1142,11 @@ function closeStatsModal() {
     const statsModal = document.getElementById('statsModal');
     if (statsModal) {
         statsModal.classList.remove('active');
+    }
+    // Détruire le graphique pour libérer la mémoire
+    if (window.statsChart) {
+        window.statsChart.destroy();
+        window.statsChart = null;
     }
 }
 
@@ -1133,6 +1229,12 @@ function generateSummaryStats() {
 function generateProgressChart() {
     const canvas = document.getElementById('progressChart');
     if (!canvas) {
+        return;
+    }
+    
+    // Vérifier si Chart.js est chargé
+    if (typeof Chart === 'undefined') {
+        canvas.parentElement.innerHTML = '<p style="text-align: center; color: #999;">Graphique indisponible (CDN non chargé)</p>';
         return;
     }
     
