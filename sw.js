@@ -69,7 +69,7 @@ self.addEventListener('fetch', (event) => {
             }
             
             if (request.headers.get('accept').includes('text/html')) {
-              return caches.match('/app');
+              return caches.match('/app.html');
             }
           });
       })

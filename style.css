@@ -814,11 +814,18 @@ body {
 
 /* Account Menu Button */
 .account-menu-btn {
-    display: none;
+    min-width: 44px;
+    padding: 10px 15px;
 }
 
 /* Login Icon Button */
 .login-icon-btn {
+    min-width: 44px;
+    padding: 10px 15px;
+}
+
+/* Stats Icon Button */
+.stats-icon-btn {
     min-width: 44px;
     padding: 10px 15px;
 }
@@ -901,6 +908,63 @@ body {
 
 .legal-notice a:hover {
     text-decoration: underline;
+}
+
+/* === STATS MODAL === */
+.stats-modal {
+    max-width: 900px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.stats-modal-body {
+    margin-bottom: 0;
+}
+
+.stats-section {
+    margin-bottom: 30px;
+}
+
+.stats-section:last-child {
+    margin-bottom: 0;
+}
+
+.stats-section h3 {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    color: #575279;
+    font-weight: bold;
+}
+
+.stats-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background-color: #f2e9e1;
+    padding: 20px;
+    text-align: center;
+    border: 2px solid #cecacd;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #575279;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* Chart */
+#progressChart {
+    max-height: 300px;
 }
 
 /* === RESPONSIVE DESIGN === */
@@ -1085,5 +1149,15 @@ body {
 
     .oauth-buttons .btn {
         min-width: 100%;
+    }
+    
+    .stats-modal {
+        width: 95%;
+        max-height: 85vh;
+    }
+    
+    .stats-summary {
+        grid-template-columns: 1fr;
+        gap: 10px;
     }
 }

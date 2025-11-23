@@ -38,6 +38,7 @@
             <div class="controls">
                 <button class="btn btn-primary" id="createTaskBtn">+ Créer une tâche</button>
                 <div id="authSection" class="export-import-controls auth-section">
+                    <button class="btn stats-icon-btn" id="statsBtn" title="Statistiques"><i class="fas fa-chart-bar"></i></button>
                     <button class="btn login-icon-btn" id="loginBtn" title="Se connecter">Se connecter</button>
                     <button class="btn account-menu-btn" id="accountMenuBtn" title="Mon compte"><i class="fas fa-user-cog"></i></button>
                 </div>
@@ -88,10 +89,6 @@
             <button class="btn btn-primary" id="modalCreateBtn">Créer</button>
         </div>
     </div>
-
-    <div class="modal-overlay" id="modalOverlay"></div>
-
-    <div class="toast-container" id="toastContainer"></div>
 
     <div class="modal" id="accountModal">
         <div class="modal-header">
@@ -163,9 +160,45 @@
         </div>
     </div>
 
+    <div class="modal stats-modal" id="statsModal">
+        <div class="modal-header">
+            <h2>Statistiques</h2>
+            <button class="modal-close" id="statsModalCloseBtn">×</button>
+        </div>
+        <div class="modal-body stats-modal-body">
+            <div class="stats-section">
+                <h3>Vue mensuelle</h3>
+                <div class="stats-summary">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalCompletedStat">0</div>
+                        <div class="stat-label">Tâches complétées</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="currentStreakStat">0</div>
+                        <div class="stat-label">Série en cours</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="completionRateStat">0%</div>
+                        <div class="stat-label">Taux de complétion</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-section">
+                <h3>Évolution dans le temps</h3>
+                <canvas id="progressChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay"></div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
         const SUPABASE_URL = 'https://qvixehlraqjhegazqrsu.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2aXhlaGxyYXFqaGVnYXpxcnN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3NDYxMjksImV4cCI6MjA3OTMyMjEyOX0.IBgf1CCDy0NrjKmDRwDPRIOrOG8PNP440FXJZLswrYQ';

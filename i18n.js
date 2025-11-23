@@ -48,7 +48,7 @@ const translations = {
         validateCaptcha: 'Veuillez valider le captcha',
         
         // Account Modal
-        accountManagement: 'Gestion de compte',
+        accountManagement: 'Compte',
         email: 'Email',
         lastLogin: 'Dernière connexion',
         accountNote: 'Vous pouvez exporter vos données ou supprimer définitivement votre compte.',
@@ -78,6 +78,16 @@ const translations = {
         
         // Empty State
         emptyState: 'Aucune tâche pour le moment. Créez une nouvelle tâche pour commencer!',
+        
+        // Statistics Modal
+        statistics: 'Statistiques',
+        monthlyView: 'Vue mensuelle',
+        timeEvolution: 'Évolution dans le temps',
+        completedTasks: 'Tâches complétées',
+        currentStreak: 'Série en cours',
+        completionRate: 'Taux de complétion',
+        less: 'Moins',
+        more: 'Plus',
         
         // Footer
         legalMentions: 'Mentions légales',
@@ -163,6 +173,16 @@ const translations = {
         // Empty State
         emptyState: 'No tasks yet. Create a new task to get started!',
         
+        // Statistics Modal
+        statistics: 'Statistics',
+        monthlyView: 'Monthly view',
+        timeEvolution: 'Progress over time',
+        completedTasks: 'Completed tasks',
+        currentStreak: 'Current streak',
+        completionRate: 'Completion rate',
+        less: 'Less',
+        more: 'More',
+        
         // Footer
         legalMentions: 'Legal notices',
         privacyPolicyLink: 'Privacy policy',
@@ -179,6 +199,7 @@ function detectBrowserLanguage() {
 
 // Langue par défaut (détection automatique ou sauvegardée)
 let currentLanguage = localStorage.getItem('habitTrackerLanguage') || detectBrowserLanguage();
+window.currentLanguage = currentLanguage;
 
 // Fonction pour obtenir une traduction
 function t(key, params = {}) {
@@ -196,6 +217,7 @@ function t(key, params = {}) {
 function setLanguage(lang) {
     if (translations[lang]) {
         currentLanguage = lang;
+        window.currentLanguage = lang;
         localStorage.setItem('habitTrackerLanguage', lang);
         
         // Mettre à jour l'attribut lang du HTML
@@ -322,6 +344,19 @@ function updateStaticTexts() {
     // Empty state
     const emptyState = document.querySelector('#emptyState p');
     if (emptyState) emptyState.textContent = t('emptyState');
+    
+    // Stats modal
+    const statsModalTitle = document.querySelector('#statsModal .modal-header h2');
+    if (statsModalTitle) statsModalTitle.textContent = t('statistics');
+    
+    const statsSections = document.querySelectorAll('#statsModal .stats-section h3');
+    if (statsSections[0]) statsSections[0].textContent = t('monthlyView');
+    if (statsSections[1]) statsSections[1].textContent = t('timeEvolution');
+    
+    const statLabels = document.querySelectorAll('.stat-label');
+    if (statLabels[0]) statLabels[0].textContent = t('completedTasks');
+    if (statLabels[1]) statLabels[1].textContent = t('currentStreak');
+    if (statLabels[2]) statLabels[2].textContent = t('completionRate');
 }
 
 // Initialisation au chargement

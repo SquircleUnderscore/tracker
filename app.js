@@ -180,6 +180,7 @@ async function saveToCloud(state) {
 
         if (error) {
             console.error('❌ Erreur sauvegarde cloud:', error);
+            showToast('Erreur de synchronisation cloud', 'error');
         } else {
             console.log('☁️✅ Sauvegarde cloud réussie');
         }
@@ -685,7 +686,10 @@ async function deleteUserAccount() {
         }
         appState = { tasks: [], taskStates: {}, lastModified: new Date().toISOString() };
         localStorage.removeItem(STORAGE_KEY);
-        await supabaseClient.auth.signOut();
+        
+        if (window.supabaseClient) {
+            await supabaseClient.auth.signOut();
+        }
 
         showToast(t('accountDeleted'), 'success');
         closeAccountModal();
@@ -761,11 +765,33 @@ function initializeEventListeners() {
     document.getElementById('prevWeekBtn').addEventListener('click', () => navigateWeek(-1));
     document.getElementById('nextWeekBtn').addEventListener('click', () => navigateWeek(1));
 
+    const statsBtn = document.getElementById('statsBtn');
+    if (statsBtn) {
+        statsBtn.addEventListener('click', openStatsModal);
+    }
+
+    const statsModalCloseBtn = document.getElementById('statsModalCloseBtn');
+    if (statsModalCloseBtn) {
+        statsModalCloseBtn.addEventListener('click', () => {
+            closeStatsModal();
+            const overlay = document.getElementById('modalOverlay');
+            const taskModal = document.getElementById('taskModal');
+            const authModal = document.getElementById('authModal');
+            const accountModal = document.getElementById('accountModal');
+            if (!taskModal.classList.contains('active') && 
+                !authModal.classList.contains('active') && 
+                !accountModal.classList.contains('active')) {
+                overlay.classList.remove('active');
+            }
+        });
+    }
+
     const overlay = document.getElementById('modalOverlay');
     overlay.addEventListener('click', () => {
         closeModal();
         closeAuthModal();
         closeAccountModal();
+        closeStatsModal();
         overlay.classList.remove('active');
     });
 
@@ -783,6 +809,13 @@ function initializeEventListeners() {
     const accountModal = document.getElementById('accountModal');
     if (accountModal) {
         accountModal.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
+
+    const statsModal = document.getElementById('statsModal');
+    if (statsModal) {
+        statsModal.addEventListener('click', (e) => {
             e.stopPropagation();
         });
     }
@@ -818,7 +851,9 @@ function initializeEventListeners() {
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async () => {
             try {
-                await supabaseClient.auth.signOut();
+                if (window.supabaseClient) {
+                    await supabaseClient.auth.signOut();
+                }
                 closeAccountModal();
                 const overlay = document.getElementById('modalOverlay');
                 if (overlay) overlay.classList.remove('active');
@@ -986,6 +1021,185 @@ function initializeEventListeners() {
     }
 
     renderIconGrid();
+}
+
+// ========================================
+// STATISTICS FUNCTIONS
+// ========================================
+
+function openStatsModal() {
+    const statsModal = document.getElementById('statsModal');
+    const overlay = document.getElementById('modalOverlay');
+    if (statsModal && overlay) {
+        statsModal.classList.add('active');
+        overlay.classList.add('active');
+        generateStatistics();
+    }
+}
+
+function closeStatsModal() {
+    const statsModal = document.getElementById('statsModal');
+    if (statsModal) {
+        statsModal.classList.remove('active');
+    }
+}
+
+function generateStatistics() {
+    generateSummaryStats();
+    generateProgressChart();
+}
+
+function generateSummaryStats() {
+    const now = new Date();
+    const last30Days = [];
+    
+    for (let i = 29; i >= 0; i--) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - i);
+        last30Days.push(formatDate(date));
+    }
+    
+    let totalCompleted = 0;
+    let totalPossible = 0;
+    let currentStreak = 0;
+    let streakActive = true;
+    
+    appState.tasks.forEach(task => {
+        last30Days.forEach(date => {
+            // Ne compter que les jours où la tâche existait déjà
+            if (!task.createdAt || date >= task.createdAt) {
+                const state = appState.taskStates[task.id]?.[date];
+                totalPossible++;
+                if (state === 'completed') {
+                    totalCompleted++;
+                }
+            }
+        });
+    });
+    
+    // Calculate streak (from today going backwards)
+    for (let i = 0; i < 30; i++) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - i);
+        const dateStr = formatDate(date);
+        
+        let dayHasCompleted = false;
+        appState.tasks.forEach(task => {
+            const state = appState.taskStates[task.id]?.[dateStr];
+            if (state === 'completed') {
+                dayHasCompleted = true;
+            }
+        });
+        
+        if (dayHasCompleted && streakActive) {
+            currentStreak++;
+        } else if (i > 0) {
+            // Only break streak after first day (today can be incomplete)
+            streakActive = false;
+        }
+    }
+    
+    const completionRate = totalPossible > 0 ? Math.round((totalCompleted / totalPossible) * 100) : 0;
+    
+    document.getElementById('totalCompletedStat').textContent = totalCompleted;
+    document.getElementById('currentStreakStat').textContent = currentStreak;
+    document.getElementById('completionRateStat').textContent = completionRate + '%';
+}
+
+function generateProgressChart() {
+    const canvas = document.getElementById('progressChart');
+    if (!canvas) {
+        return;
+    }
+    
+    const ctx = canvas.getContext('2d');
+    
+    // Destroy previous chart if exists
+    if (window.statsChart) {
+        window.statsChart.destroy();
+    }
+    
+    const now = new Date();
+    const labels = [];
+    const data = [];
+    const lang = window.currentLanguage || 'fr';
+    
+    for (let i = 29; i >= 0; i--) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - i);
+        const dateStr = formatDate(date);
+        
+        let completedCount = 0;
+        appState.tasks.forEach(task => {
+            const state = appState.taskStates[task.id]?.[dateStr];
+            if (state === 'completed') {
+                completedCount++;
+            }
+        });
+        
+        labels.push(date.toLocaleDateString(lang, { month: 'short', day: 'numeric' }));
+        data.push(completedCount);
+    }
+    
+    const chartLabel = lang === 'fr' ? 'Tâches complétées' : 'Completed tasks';
+    
+    window.statsChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: chartLabel,
+                data: data,
+                borderColor: '#4bbb70',
+                backgroundColor: 'rgba(75, 187, 112, 0.1)',
+                borderWidth: 2,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 3,
+                pointHoverRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: '#575279',
+                    titleColor: '#FFFAF3',
+                    bodyColor: '#FFFAF3',
+                    borderColor: '#cecacd',
+                    borderWidth: 1,
+                    padding: 10,
+                    displayColors: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        color: '#666'
+                    },
+                    grid: {
+                        color: '#dfdad9'
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#666',
+                        maxRotation: 45,
+                        minRotation: 45
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
 }
 
 // ========================================
