@@ -26,7 +26,7 @@ A minimalist Progressive Web App (PWA) to track your daily habits with cloud syn
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/SquircleUnderscore/tracker.git
+git clone https://github.com/SquircleUnderscore/HabitTracker.git
 cd tracker
 ```
 
