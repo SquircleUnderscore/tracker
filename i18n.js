@@ -232,7 +232,7 @@ function updateStaticTexts() {
     if (loginBtn) loginBtn.textContent = t('login');
     
     const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) logoutBtn.innerHTML = `<i class="fas fa-sign-out-alt"></i> ${t('logout')}`;
+    if (logoutBtn) logoutBtn.innerHTML = `<i class="fas fa-sign-out-alt"></i>`;
     
     const accountMenuBtn = document.getElementById('accountMenuBtn');
     if (accountMenuBtn) accountMenuBtn.innerHTML = `<i class="fas fa-user-cog"></i>`;
