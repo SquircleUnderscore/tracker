@@ -65,17 +65,6 @@
         </main>
     </div>
 
-    <!-- Language Selector -->
-    <div class="language-selector-fixed">
-        <label for="languageSelector">
-            <i class="fas fa-globe"></i>
-        </label>
-        <select id="languageSelector" class="language-select">
-            <option value="fr">Français</option>
-            <option value="en">English</option>
-        </select>
-    </div>
-
     <div class="modal" id="taskModal">
         <div class="modal-header">
             <h2 id="taskModalTitle">Créer une nouvelle tâche</h2>
@@ -115,16 +104,28 @@
                 <p><strong>Dernière connexion :</strong> <span id="accountLastLogin"></span></p>
             </div>
             
-            <div class="form-group" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-                <button class="btn btn-primary" id="exportDataBtn" style="flex: 1; min-width: 150px;">
+            <div class="account-actions">
+                <button class="btn btn-primary account-action-btn" id="exportDataBtn">
                     <i class="fas fa-download"></i> Exporter mes données
                 </button>
-                <button class="btn btn-danger" id="deleteAccountBtn" style="flex: 1; min-width: 150px;">
+                <button class="btn btn-danger account-action-btn" id="deleteAccountBtn">
                     <i class="fas fa-trash-alt"></i> Supprimer mon compte
                 </button>
-                <button class="btn" id="logoutBtn" title="Se déconnecter" style="min-width: 44px; padding: 10px 15px;">
+                <button class="btn logout-icon-btn" id="logoutBtn" title="Se déconnecter">
                     <i class="fas fa-sign-out-alt"></i>
                 </button>
+            </div>
+
+            <div class="account-language-section">
+                <div class="account-language-wrapper">
+                    <label for="accountLanguageSelector" class="account-language-label">
+                        <i class="fas fa-globe"></i>
+                    </label>
+                    <select id="accountLanguageSelector" class="language-select">
+                        <option value="fr">Français</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
             </div>
         </div>
     </div>
@@ -135,7 +136,7 @@
             <div class="cf-turnstile" id="turnstileWidget" data-sitekey="0x4AAAAAACCW3Hw8GI122wvN" data-theme="light"></div>
             <button class="modal-close" id="authModalCloseBtn">×</button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body auth-modal-body">
             <div class="form-group oauth-buttons">
                 <button class="btn btn-primary" id="loginGithubBtn">
                     <i class="fab fa-github"></i>Continuer avec GitHub
@@ -152,11 +153,11 @@
                         <i class="fas fa-paper-plane"></i>
                     </button>
                 </div>
-                <p style="font-size:0.85rem;color:#666;margin-top:5px;text-align:right;">
+                <p class="email-help-text">
                     Un lien de connexion sera envoyé par email.
                 </p>
             </div>
-            <p class="legal-notice">
+            <p class="legal-notice auth-legal-notice">
                 En vous connectant, vous acceptez nos <a href="/legal.html" target="_blank">conditions d'utilisation</a> et notre <a href="/legal.html#confidentialite" target="_blank">politique de confidentialité</a>.
             </p>
         </div>

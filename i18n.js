@@ -42,7 +42,7 @@ const translations = {
         orByEmail: 'Ou par email',
         emailPlaceholder: 'francisco@respondant.com',
         magicLinkInfo: 'Un lien de connexion sera envoyé par email.',
-        legalNotice: 'En vous connectant, vous acceptez nos {terms} et notre {privacy}.',
+        legalNotice: 'En vous connectant, vous acceptez les {terms} et {privacy}.',
         termsOfUse: 'conditions d\'utilisation',
         privacyPolicy: 'politique de confidentialité',
         validateCaptcha: 'Veuillez valider le captcha',
@@ -55,7 +55,7 @@ const translations = {
         exportData: 'Export my data',
         exportDataHelp: 'Télécharge toutes vos données au format JSON (tâches, historique, dates).',
         dangerZone: 'Zone dangereuse',
-        deleteAccount: 'Supprimer mon compte',
+        deleteAccount: 'Delete my account',
         deleteAccountWarning: '⚠️ Cette action est irréversible. Toutes vos données seront définitivement supprimées.',
         
         // Toast Messages
@@ -219,6 +219,10 @@ function updateLanguageSelector() {
     const selector = document.getElementById('languageSelector');
     if (selector) {
         selector.value = currentLanguage;
+    }
+    const accountSelector = document.getElementById('accountLanguageSelector');
+    if (accountSelector) {
+        accountSelector.value = currentLanguage;
     }
 }
 

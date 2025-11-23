@@ -666,7 +666,6 @@ async function deleteUserAccount() {
     }
 
     try {
-        // Supprimer les données cloud
         if (window.supabaseClient) {
             console.log('🗑️ Suppression des données pour user_id:', currentUser.id);
             
@@ -684,13 +683,8 @@ async function deleteUserAccount() {
             
             console.log('✅ Données supprimées:', data);
         }
-
-        // Supprimer les données locales
         appState = { tasks: [], taskStates: {}, lastModified: new Date().toISOString() };
         localStorage.removeItem(STORAGE_KEY);
-
-        // Déconnexion (Note: La suppression complète du compte utilisateur nécessite 
-        // une action côté serveur pour des raisons de sécurité)
         await supabaseClient.auth.signOut();
 
         showToast(t('accountDeleted'), 'success');
@@ -728,7 +722,6 @@ function openAccountModal() {
             emailDisplay.textContent = currentUser.email;
         }
         if (lastLoginDisplay) {
-            // Format last sign in time
             const lastSignIn = currentUser.last_sign_in_at || currentUser.created_at;
             if (lastSignIn) {
                 const date = new Date(lastSignIn);
@@ -981,12 +974,12 @@ function initializeEventListeners() {
         deleteAccountBtn.addEventListener('click', deleteUserAccount);
     }
 
-    // Language selector
-    const languageSelector = document.getElementById('languageSelector');
-    if (languageSelector) {
-        languageSelector.value = currentLanguage;
+    // Account modal language selector
+    const accountLanguageSelector = document.getElementById('accountLanguageSelector');
+    if (accountLanguageSelector) {
+        accountLanguageSelector.value = currentLanguage;
         
-        languageSelector.addEventListener('change', (e) => {
+        accountLanguageSelector.addEventListener('change', (e) => {
             const lang = e.target.value;
             setLanguage(lang);
         });

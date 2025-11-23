@@ -40,26 +40,25 @@
   </div>
 
   <footer class="footer">
-    <a href="/legal.html" data-i18n="footer-legal">Mentions légales</a> |
-    <a href="/legal.html#confidentialite" data-i18n="footer-privacy">Politique de confidentialité</a> |
-    <a href="/legal.html#rgpd" data-i18n="footer-gdpr">RGPD</a>
+    <div class="footer-left">
+      <label for="footerLanguageSelector" class="language-selector-label">
+        <i class="fas fa-globe"></i>
+        <select id="footerLanguageSelector" class="language-select">
+          <option value="fr">Français</option>
+          <option value="en">English</option>
+        </select>
+      </label>
+    </div>
+    <div class="footer-right">
+      <a href="/legal.html" data-i18n="footer-legal">Mentions légales</a> |
+      <a href="/legal.html#confidentialite" data-i18n="footer-privacy">Politique de confidentialité</a> |
+      <a href="/legal.html#rgpd" data-i18n="footer-gdpr">RGPD</a>
+    </div>
   </footer>
-</div>
-
-<!-- Language Selector -->
-<div class="language-selector-fixed">
-  <label for="languageSelector">
-    <i class="fas fa-globe"></i>
-  </label>
-  <select id="languageSelector" class="language-select">
-    <option value="fr">Français</option>
-    <option value="en">English</option>
-  </select>
 </div>
 
 <script src="i18n.js"></script>
 <script>
-  // Traductions pour la page d'accueil
   const homeTranslations = {
     fr: {
       'home-title': 'Habit Tracker',
@@ -101,19 +100,17 @@
     });
   }
 
-  // Language selector
-  const languageSelector = document.getElementById('languageSelector');
-  if (languageSelector) {
-    languageSelector.value = currentLanguage;
+  const footerLanguageSelector = document.getElementById('footerLanguageSelector');
+  if (footerLanguageSelector) {
+    footerLanguageSelector.value = currentLanguage;
     
-    languageSelector.addEventListener('change', (e) => {
+    footerLanguageSelector.addEventListener('change', (e) => {
       const lang = e.target.value;
       setLanguage(lang);
       updateHomeTranslations(lang);
     });
   }
 
-  // Appliquer la langue au chargement
   updateHomeTranslations(currentLanguage);
 </script>
 </body>
