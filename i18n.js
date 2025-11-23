@@ -230,10 +230,10 @@ function updateStaticTexts() {
     if (loginBtn) loginBtn.textContent = t('login');
     
     const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) logoutBtn.textContent = t('logout');
+    if (logoutBtn) logoutBtn.innerHTML = `<i class="fas fa-sign-out-alt"></i> ${t('logout')}`;
     
     const accountMenuBtn = document.getElementById('accountMenuBtn');
-    if (accountMenuBtn) accountMenuBtn.innerHTML = `<i class="fas fa-user-cog"></i> ${t('myAccount')}`;
+    if (accountMenuBtn) accountMenuBtn.innerHTML = `<i class="fas fa-user-cog"></i>`;
     
     // Headers de jours
     const dayHeaders = document.querySelectorAll('.day-header');

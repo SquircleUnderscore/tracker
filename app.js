@@ -604,22 +604,17 @@ function render() {
 function updateAuthUI() {
     const loginBtn = document.getElementById('loginBtn');
     const logoutBtn = document.getElementById('logoutBtn');
-    const userEmailSpan = document.getElementById('userEmail');
     const accountMenuBtn = document.getElementById('accountMenuBtn');
 
-    if (!loginBtn || !logoutBtn || !userEmailSpan) return;
+    if (!loginBtn || !logoutBtn) return;
 
     if (currentUser) {
         console.log('🟢 UI: Connecté -', currentUser.email);
         loginBtn.style.display = 'none';
-        logoutBtn.style.display = 'inline-block';
-        userEmailSpan.textContent = currentUser.email || '';
         if (accountMenuBtn) accountMenuBtn.style.display = 'inline-block';
     } else {
         console.log('🔴 UI: Déconnecté');
         loginBtn.style.display = 'inline-block';
-        logoutBtn.style.display = 'none';
-        userEmailSpan.textContent = '';
         if (accountMenuBtn) accountMenuBtn.style.display = 'none';
     }
 }
@@ -689,7 +684,8 @@ async function deleteUserAccount() {
         appState = { tasks: [], taskStates: {}, lastModified: new Date().toISOString() };
         localStorage.removeItem(STORAGE_KEY);
 
-        // Déconnexion
+        // Déconnexion (Note: La suppression complète du compte utilisateur nécessite 
+        // une action côté serveur pour des raisons de sécurité)
         await supabaseClient.auth.signOut();
 
         showToast(t('accountDeleted'), 'success');
